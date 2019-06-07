@@ -76,7 +76,7 @@ function PrintPost($id) {
       echo '<img src="'.htmlspecialchars($row['post_image']).'" class="img-rounded" style="width: 50%;height: auto;"></img><br><br>';
     }
     printLikeButton($row['id'], 0);
-    echo '<div align="left">Comments <span class="badge">0</span></div></li>';
+    echo '<div align="left">Comments <span class="badge">0</span> <span style="color: #c4c4c4;">'.humanTiming(strtotime($row['date_time'])).'</span></div></li>';
   }
 }
 
@@ -129,4 +129,25 @@ function printLikeButton($id, $liketype) {
   }
 
   echo '<button id="'.$id.'" liketype="'.$liketype.'" remove="'.$liked.'" type="button" '.($post['creator'] == $user['id'] || empty($_COOKIE['token_ses_data']) ? 'disabled' : '').' class="btn btn-primary like-button"><span class="like-button-text">'.($liked == 0 ? 'Like' : 'Unlike').'</span> <span class="badge"><div class="like-count">'.$like_count.'</div></span></button> ';
+}
+
+function humanTiming($time) {
+  #Credit goes to arian for this code.
+  #Yes, I may be using the same code as something from a Miiverse clone, but that does NOT make Boot_Media a Miiverse clone >:(
+      if(time() - $time >= 345600) {
+        return date("m/d/Y g:i A", $time);
+    }
+    $time = time() - $time;
+    if (strval($time) < 1) {
+        $time = 1;
+    }
+    $tokens = array(86400 => 'day', 3600 => 'hour', 60 => 'minute', 1 => 'second');
+    foreach ($tokens as $unit => $text){
+        if($time < $unit) continue;
+        $numberOfUnits = floor($time / $unit);
+        if ($time < 6) {
+          return 'Just Now';
+        }
+        return $numberOfUnits.' '.$text.(($numberOfUnits>1)?'s':''). ' ago';
+    }
 }

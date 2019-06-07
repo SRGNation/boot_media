@@ -54,3 +54,6 @@ if(isset($_COOKIE['token_ses_data'])) {
 		setcookie('token_ses_data', '', time() - 3600, '/');
 	}
 }
+
+@$db->query('SET time_zone = "-4:00";') || rip();
+date_default_timezone_set('America/New_York');

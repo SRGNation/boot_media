@@ -45,6 +45,7 @@ $com_row = mysqli_fetch_array($community);
 				<?php if(mysqli_num_rows($community) != 0) { ?><h3><?php 
 				echo '<img src="'.htmlspecialchars($com_row['community_icon']).'" class="img-rounded" style="width: 40px;height: 40px;"> ';
 				echo htmlspecialchars($com_row['community_name']); ?><?php } ?></h3>
+				<p>Posted <?php echo humanTiming(strtotime($post['date_time'])); ?></p>
 			</div>
 		<?php if($post['uses_html'] == 1 && $view_html == false && $owner_data['id'] != $user['id']) {
 			?>
