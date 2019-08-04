@@ -12,7 +12,7 @@ if(!isset($_GET['view_html'])) {
 }
 
 $post_id = mysqli_real_escape_string($db,$_GET['id']);
-$get_pos_data = $db->query("SELECT * FROM posts WHERE id = $post_id AND is_deleted = 0");
+$get_pos_data = $db->query("SELECT * FROM posts WHERE id = $post_id AND is_deleted < 2");
 $post_exists = mysqli_num_rows($get_pos_data);
 $post = mysqli_fetch_array($get_pos_data);
 
@@ -28,11 +28,14 @@ if($post_exists == 0) {
 </html>');
 }
 
-$pos_owner_data = $db->query("SELECT * FROM users WHERE id = ".$post['creator']);
+$pos_owner_data = $db->query("SELECT user_name, nick_name, user_avatar FROM users WHERE id = ".$post['creator']);
 $owner_data = mysqli_fetch_array($pos_owner_data);
 
-$community = $db->query("SELECT * FROM communities WHERE id = ".$post['post_community']." AND is_hidden = 0");
+$community = $db->query("SELECT community_name, community_icon FROM communities WHERE id = ".$post['post_community']." AND is_hidden = 0");
 $com_row = mysqli_fetch_array($community);
+
+$get_comments = $db->query("SELECT * FROM comments WHERE comment_post = ".$post_id);
+$ccount = mysqli_num_rows($get_comments);
 
 ?>
 <html>
@@ -63,10 +66,23 @@ $com_row = mysqli_fetch_array($community);
 			<?php if(isset($_COOKIE['token_ses_data'])) { ?> <a class="btn btn-primary" href="create_comment.php?id=<?php echo $post_id; ?>"><span class="badge">+</span> Create comment</a><br><br> <?php } ?>
 			<div class="panel panel-default">
 				<div class="panel-heading">
-					Comments <span class="badge">0</span>
+					Comments <span class="badge"><?php echo $ccount; ?></span>
 				</div>
 				<div class="panel-body">
-					There doesn't seem to be any comments on this post yet.
+					<?php 
+						if($ccount !== 0) {
+							while($comment = mysqli_fetch_array($get_comments)) {
+								$get_user = $db->query("SELECT id, user_avatar FROM users WHERE id = ".$comment['creator']);
+								$creator = mysqli_fetch_array($get_user);
+
+								echo '<li class="list-group-item"><a href="user_page.php"><img src="'.htmlspecialchars($creator['user_avatar']).'" class="img-rounded" style="width: 35px;height: 35px;"> </a> '.htmlspecialchars($comment['comment_body']).'<br><br>';
+								printLikeButton($comment['id'], 1);
+								echo '<div align="left"><span style="color: #c4c4c4;">'.humanTiming(strtotime($comment['date_time'])).'</span></div></li>';
+							}
+						} else {
+							echo 'There are no comments on this post yet.';
+						}
+					?>
 				</div>
 			</div>
 		</div>

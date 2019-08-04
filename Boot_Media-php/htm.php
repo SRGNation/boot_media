@@ -51,8 +51,11 @@ function PrintPost($id) {
   $get_post = $db->query("SELECT * FROM posts WHERE id = $id");
   $row = mysqli_fetch_array($get_post);
 
+  $get_comments = $db->query("SELECT id FROM comments WHERE comment_post = ".$row['id']);
+  $ccount = mysqli_num_rows($get_comments);
+
   if(mysqli_num_rows($get_post) != 0) {
-    $get_user = $db->query("SELECT * FROM users WHERE id = ".$row['creator']);
+    $get_user = $db->query("SELECT id, user_avatar FROM users WHERE id = ".$row['creator']);
     $user = mysqli_fetch_array($get_user);
 
     if(strlen($row['post_body']) > 110) {
@@ -76,7 +79,7 @@ function PrintPost($id) {
       echo '<img src="'.htmlspecialchars($row['post_image']).'" class="img-rounded" style="width: 50%;height: auto;"></img><br><br>';
     }
     printLikeButton($row['id'], 0);
-    echo '<div align="left">Comments <span class="badge">0</span> <span style="color: #c4c4c4;">'.humanTiming(strtotime($row['date_time'])).'</span></div></li>';
+    echo '<div align="left">Comments <span class="badge">'.$ccount.'</span> <span style="color: #c4c4c4;">'.humanTiming(strtotime($row['date_time'])).'</span></div></li>';
   }
 }
 
@@ -115,17 +118,18 @@ function printLikeButton($id, $liketype) {
   global $db;
   global $user;
 
-  $find_lc = $db->query("SELECT * FROM likes WHERE post_like = $id AND like_type = $liketype");
+  $find_lc = $db->query("SELECT id FROM likes WHERE post_like = $id AND like_type = $liketype");
   $like_count = mysqli_num_rows($find_lc);
 
-  $check_if_liked = $db->query("SELECT * FROM likes WHERE post_like = $id AND like_type = $liketype AND creator = ".$user['id']);
+  $check_if_liked = $db->query("SELECT id FROM likes WHERE post_like = $id AND like_type = $liketype AND creator = ".$user['id']);
   $liked = (mysqli_num_rows($check_if_liked) > 0 ? 1 : 0);
 
   if($liketype == 0) {
-    $p_find = $db->query("SELECT * FROM posts WHERE id = $id");
+    $p_find = $db->query("SELECT creator FROM posts WHERE id = $id");
     $post = mysqli_fetch_array($p_find);
   } elseif($liketype == 1) {
-
+    $p_find = $db->query("SELECT creator FROM comments WHERE id = $id");
+    $post = mysqli_fetch_array($p_find);
   }
 
   echo '<button id="'.$id.'" liketype="'.$liketype.'" remove="'.$liked.'" type="button" '.($post['creator'] == $user['id'] || empty($_COOKIE['token_ses_data']) ? 'disabled' : '').' class="btn btn-primary like-button"><span class="like-button-text">'.($liked == 0 ? 'Like' : 'Unlike').'</span> <span class="badge"><div class="like-count">'.$like_count.'</div></span></button> ';
@@ -145,7 +149,7 @@ function humanTiming($time) {
     foreach ($tokens as $unit => $text){
         if($time < $unit) continue;
         $numberOfUnits = floor($time / $unit);
-        if ($time < 6) {
+        if ($time < 1) {
           return 'Just Now';
         }
         return $numberOfUnits.' '.$text.(($numberOfUnits>1)?'s':''). ' ago';
