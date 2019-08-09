@@ -8,22 +8,22 @@ function PrintNavBar($page) {
       					<a class="navbar-brand" href="/">Boot_Media</a>
     				</div>
     		<ul class="nav navbar-nav">
-      		<li><a href="list_communities.php">Communities</a></li>
-      		<li><a href="trending.php">Trending</a></li>
+      		<li><a href="/communities">Communities</a></li>
+      		<li><a href="/trending">Trending</a></li>
     		</ul>';
 
         if($page != 'signin') {
           if(!isset($_COOKIE['token_ses_data'])) {
     		  echo '<ul class="nav navbar-nav navbar-right">
-    	       <li><a href="signup.php"><span class="glyphicon glyphicon-user"></span> Sign Up</a></li>
-      		  <li><a href="signin.php"><span class="glyphicon glyphicon-log-in"></span> Login</a></li>
+    	       <li><a href="/register"><span class="glyphicon glyphicon-user"></span> Sign Up</a></li>
+      		  <li><a href="/login"><span class="glyphicon glyphicon-log-in"></span> Login</a></li>
       		  </ul>
   			   </div>';
           } else {
             echo '<ul class="nav navbar-nav navbar-right">
-             <li><a href="user_page.php?name='.$user['user_name'].'&page=profile"><span><img src="'.$user['user_avatar'].'" style="width:25px;height:25px" class="img-rounded"></span> User Profile</a></li>
+             <li><a href="/users/'.$user['user_name'].'"><span>'.printUserAvatar($user['id'], '25px').'</span> User Profile</a></li>
             <li><a href="logout.php?token='.$_COOKIE['token_ses_data'].'"><span class="glyphicon glyphicon-log-in"></span> Logout</a></li>
-            <li><a href="profile_settings.php"><span class="glyphicon glyphicon-cog"></span> User Settings</a></li>
+            <li><a href="/users/edit"><span class="glyphicon glyphicon-cog"></span> User Settings</a></li>
             </ul>
            </div>';
           }
@@ -55,7 +55,7 @@ function PrintPost($id) {
   $ccount = mysqli_num_rows($get_comments);
 
   if(mysqli_num_rows($get_post) != 0) {
-    $get_user = $db->query("SELECT id, user_avatar FROM users WHERE id = ".$row['creator']);
+    $get_user = $db->query("SELECT id, user_avatar, user_name FROM users WHERE id = ".$row['creator']);
     $user = mysqli_fetch_array($get_user);
 
     if(strlen($row['post_body']) > 110) {
@@ -64,7 +64,7 @@ function PrintPost($id) {
       $content_st = $row['post_body'];
     }
 
-    echo '<li class="list-group-item"><a href="user_page.php"><img src="'.htmlspecialchars($user['user_avatar']).'" class="img-rounded" style="width: 35px;height: 35px;"> </a><a href="/post.php?id='.$row['id'].'">'.htmlspecialchars($content_st).'</a> ';
+    echo '<li class="list-group-item"><a href="/users/'.$user['user_name'].'">'.printUserAvatar($user['id'], '35px').' </a><a href="/posts/'.$row['id'].'">'.htmlspecialchars($content_st).'</a> ';
     if($row['is_pinned'] == 1) {
       echo '<span class="label label-primary">Pinned</span> ';
     }
@@ -81,6 +81,15 @@ function PrintPost($id) {
     printLikeButton($row['id'], 0);
     echo '<div align="left">Comments <span class="badge">'.$ccount.'</span> <span style="color: #c4c4c4;">'.humanTiming(strtotime($row['date_time'])).'</span></div></li>';
   }
+}
+
+function printUserAvatar($id, $size) {
+  global $db;
+
+  $find_user = $db->query("SELECT id, user_name, user_avatar FROM users WHERE id = $id");
+  $user = mysqli_fetch_array($find_user);
+
+  return '<img src="'.(!empty($user['user_avatar']) ? htmlspecialchars($user['user_avatar']) : '/img/walter.png').'" class="img-rounded" style="width: '.$size.';height: '.$size.';">';
 }
 
 function checkRemoteFile($image) {
@@ -149,7 +158,7 @@ function humanTiming($time) {
     foreach ($tokens as $unit => $text){
         if($time < $unit) continue;
         $numberOfUnits = floor($time / $unit);
-        if ($time < 1) {
+        if ($time < 2) {
           return 'Just Now';
         }
         return $numberOfUnits.' '.$text.(($numberOfUnits>1)?'s':''). ' ago';

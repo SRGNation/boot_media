@@ -23,10 +23,10 @@ if($comm_exists == 0) {
 </html>');
 }
 
-$com_owner_data = $db->query("SELECT * FROM users WHERE id = ".$community['community_owner']);
+$com_owner_data = $db->query("SELECT id, user_name, nick_name FROM users WHERE id = ".$community['community_owner']);
 $owner_data = mysqli_fetch_array($com_owner_data);
 
-$cpostdata = $db->query("SELECT * FROM posts WHERE post_community = $community_id AND is_deleted = 0 ORDER BY date_time DESC LIMIT 30");
+$cpostdata = $db->query("SELECT * FROM posts WHERE post_community = $community_id AND is_deleted = 0 ORDER BY is_pinned DESC, date_time DESC LIMIT 30");
 
 ?>
 <html>
@@ -39,9 +39,9 @@ $cpostdata = $db->query("SELECT * FROM posts WHERE post_community = $community_i
 				<h1><?php echo '<img src="'.htmlspecialchars($community['community_icon']).'" class="img-rounded" style="width: 50px;height: 50px;"> '.htmlspecialchars($community['community_name']); ?></h1>
 				<p><?php echo htmlspecialchars($community['community_desc']); ?></p>
 				<?php if(mysqli_num_rows($com_owner_data) != 0) { ?>
-				<h4><?php echo '<img src="'.htmlspecialchars($owner_data['user_avatar']).'" class="img-rounded" style="width: 30px;height: 30px;">'; ?> Community created by <?php echo $owner_data['nick_name']; ?></h4> <?php } ?>
+				<h4><?php echo printUserAvatar($owner_data['id'], '30px'); ?> Community created by <?php echo $owner_data['nick_name']; ?></h4> <?php } ?>
 			</div>
-			<?php if(isset($_COOKIE['token_ses_data'])) { ?> <a class="btn btn-primary" href="create_post.php?id=<?php echo $community_id; ?>"><span class="badge">+</span> Create post</a><br><br> <?php } ?>
+			<?php if(isset($_COOKIE['token_ses_data'])) { ?> <a class="btn btn-primary" href="/communities/<?php echo $community_id; ?>/post"><span class="badge">+</span> Create post</a><br><br> <?php } ?>
 			<div class="panel panel-default">
 				<div class="panel-heading">
 					All Posts

@@ -11,7 +11,7 @@ if(!isset($_COOKIE['token_ses_data'])) {
 }
 
 if(isset($_GET['id'])) {
-	$community = $db->query("SELECT * FROM communities WHERE id = $community_id");
+	$community = $db->query("SELECT community_name, community_icon, is_hidden FROM communities WHERE id = $community_id");
 	$row = mysqli_fetch_array($community);
 
 	if(mysqli_num_rows($community) == 0 || $row['is_hidden'] == 1) {
@@ -67,7 +67,7 @@ if($_SERVER['REQUEST_METHOD'] == "POST") {
 	if(!isset($err)) {
 		$db->query("INSERT INTO posts (post_body, post_community, post_type, post_image, uses_html, creator) VALUES ('".mysqli_real_escape_string($db,$_POST['content'])."', ".mysqli_real_escape_string($db,$_POST['communityid']).", ".mysqli_real_escape_string($db,$_POST['post_type']).", '".mysqli_real_escape_string($db,$_POST['screenshot'])."', ".mysqli_real_escape_string($db,$_POST['use_html']).", ".$user['id'].")");
 
-		exit("<div id=\"main-body\">redirecting...<META HTTP-EQUIV=\"refresh\" content=\"0;URL=".($_POST['communityid'] == 0 ? '/user_page.php?name='.$user['user_name'].'&page=profile' : '/communities.php?id='.$_POST['communityid'])."\">");
+		exit("<div id=\"main-body\">redirecting...<META HTTP-EQUIV=\"refresh\" content=\"0;URL=".($_POST['communityid'] == 0 ? '/users/'.$user['user_name'].'' : '/communities/'.$_POST['communityid'])."\">");
 	} else {
 		if($_POST['communityid'] != 0) {
 			$community_id = mysqli_real_escape_string($db,$_POST['communityid']);
@@ -85,9 +85,7 @@ if($_SERVER['REQUEST_METHOD'] == "POST") {
 
 ?>
 <html>
-	<head>
 	<?php PrintHeader('Create Post'); ?>
-	</head>
 	<body>
 		<?php PrintNavBar('post'); ?>
         <div class="container">
@@ -107,7 +105,7 @@ if($_SERVER['REQUEST_METHOD'] == "POST") {
         <div class="panel panel-default">
         <div class="panel-heading">Create Post</div>
         <div class="panel-body">
-		<form action="create_post.php" method="post">
+		<form action="/create_post.php" method="post">
             <input type="hidden" name="csrftoken" value="<?php echo $_COOKIE['token_ses_data']; ?>">
             <input type="hidden" name="communityid" value="<?php if(isset($community_id)) { echo $community_id; } else { echo '0'; } ?>">
             <div class="form-group">

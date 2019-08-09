@@ -28,7 +28,7 @@ if($post_exists == 0) {
 </html>');
 }
 
-$pos_owner_data = $db->query("SELECT user_name, nick_name, user_avatar FROM users WHERE id = ".$post['creator']);
+$pos_owner_data = $db->query("SELECT id, user_name, nick_name, user_avatar FROM users WHERE id = ".$post['creator']);
 $owner_data = mysqli_fetch_array($pos_owner_data);
 
 $community = $db->query("SELECT community_name, community_icon FROM communities WHERE id = ".$post['post_community']." AND is_hidden = 0");
@@ -44,7 +44,7 @@ $ccount = mysqli_num_rows($get_comments);
 		<?php PrintNavBar('home'); ?>
 		<div class="container">
 			<div class="page-header">
-				<h1><?php echo '<img src="'.htmlspecialchars($owner_data['user_avatar']).'" class="img-rounded" style="width: 50px;height: 50px;"> '.htmlspecialchars($owner_data['nick_name']); ?>'s post</h1>
+				<h1><?php echo printUserAvatar($owner_data['id'], '40px').' '.htmlspecialchars($owner_data['nick_name']); ?>'s post</h1>
 				<?php if(mysqli_num_rows($community) != 0) { ?><h3><?php 
 				echo '<img src="'.htmlspecialchars($com_row['community_icon']).'" class="img-rounded" style="width: 40px;height: 40px;"> ';
 				echo htmlspecialchars($com_row['community_name']); ?><?php } ?></h3>
@@ -52,7 +52,7 @@ $ccount = mysqli_num_rows($get_comments);
 			</div>
 		<?php if($post['uses_html'] == 1 && $view_html == false && $owner_data['id'] != $user['id']) {
 			?>
-		<div class="alert alert-danger"><b>Warning!</b> This post uses HTML, so there might be malicious code inside it. So if you <b>REALLY</b> trust this post, then you can continue <a href="post.php?id=<?php echo $_GET['id']; ?>&view_html">here</a>!</div>
+		<div class="alert alert-danger"><b>Warning!</b> This post uses HTML, so there might be malicious code inside it. So if you <b>REALLY</b> trust this post, then you can continue <a href="/posts/<?php echo $_GET['id']; ?>/html">here</a>!</div>
 			<?php
 		}?>
 		<p><?php if($post['uses_html'] == 0 || ($view_html == false && $owner_data['id'] != $user['id'])) {echo htmlspecialchars($post['post_body']);} else {echo htmlspecialchars_decode($post['post_body'], ENT_HTML5);} ?></p>
@@ -63,7 +63,7 @@ $ccount = mysqli_num_rows($get_comments);
 			printLikeButton($post['id'], 0);
 		?>
 			<br><br>
-			<?php if(isset($_COOKIE['token_ses_data'])) { ?> <a class="btn btn-primary" href="create_comment.php?id=<?php echo $post_id; ?>"><span class="badge">+</span> Create comment</a><br><br> <?php } ?>
+			<?php if(isset($_COOKIE['token_ses_data'])) { ?> <a class="btn btn-primary" href="/posts/<?php echo $post_id; ?>/comment"><span class="badge">+</span> Create comment</a><br><br> <?php } ?>
 			<div class="panel panel-default">
 				<div class="panel-heading">
 					Comments <span class="badge"><?php echo $ccount; ?></span>
@@ -72,10 +72,10 @@ $ccount = mysqli_num_rows($get_comments);
 					<?php 
 						if($ccount !== 0) {
 							while($comment = mysqli_fetch_array($get_comments)) {
-								$get_user = $db->query("SELECT id, user_avatar FROM users WHERE id = ".$comment['creator']);
+								$get_user = $db->query("SELECT id, user_avatar, user_name FROM users WHERE id = ".$comment['creator']);
 								$creator = mysqli_fetch_array($get_user);
 
-								echo '<li class="list-group-item"><a href="user_page.php"><img src="'.htmlspecialchars($creator['user_avatar']).'" class="img-rounded" style="width: 35px;height: 35px;"> </a> '.htmlspecialchars($comment['comment_body']).'<br><br>';
+								echo '<li class="list-group-item"><a href="/users/'.$creator['user_name'].'"><img src="'.htmlspecialchars($creator['user_avatar']).'" class="img-rounded" style="width: 35px;height: 35px;"> </a> '.htmlspecialchars($comment['comment_body']).'<br><br>';
 								printLikeButton($comment['id'], 1);
 								echo '<div align="left"><span style="color: #c4c4c4;">'.humanTiming(strtotime($comment['date_time'])).'</span></div></li>';
 							}

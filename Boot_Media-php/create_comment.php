@@ -17,6 +17,8 @@ if(isset($_GET['id'])) {
 	if(mysqli_num_rows($post) == 0 || $row['is_deleted'] > 1) {
 		exit('This post doesn\'t exist.');
 	}
+} else {
+	exit('There is no Post ID.');
 }
 
 $get_creator = $db->query("SELECT nick_name, user_avatar, user_name FROM users WHERE id = ".$row['creator']);
@@ -62,7 +64,7 @@ if($_SERVER['REQUEST_METHOD'] == "POST") {
 	if(!isset($err)) {
 		$db->query("INSERT INTO comments (comment_body, comment_post, comment_type, comment_image, creator) VALUES ('".mysqli_real_escape_string($db,$_POST['content'])."', ".mysqli_real_escape_string($db,$_POST['postid']).", ".mysqli_real_escape_string($db,$_POST['comment_type']).", '".mysqli_real_escape_string($db,$_POST['screenshot'])."', ".$user['id'].")");
 
-		exit("<div id=\"main-body\">redirecting...<META HTTP-EQUIV=\"refresh\" content=\"0;URL=post.php?id=".$_POST['postid']."\">");
+		exit("<div id=\"main-body\">redirecting...<META HTTP-EQUIV=\"refresh\" content=\"0;URL=/posts/".$_POST['postid']."\">");
 	} else {
 		$post_id = mysqli_real_escape_string($db,$_POST['postid']);
 
@@ -84,9 +86,7 @@ if($_SERVER['REQUEST_METHOD'] == "POST") {
         <div class="container">
         <div class="page-header">    
 		  <h1>Create Comment</h1>
-		  <?php if(isset($post_id)) { ?><h3><?php 
-		  echo '<img src="'.htmlspecialchars($creator['user_avatar']).'" class="img-rounded" style="width: 40px;height: 40px;"> ';
-		  echo htmlspecialchars($creator['nick_name']); ?><?php } ?>'s Post</h3>
+		  <h3><?php echo printUserAvatar($creator['user_avatar'], '40px'); ?> <?php echo htmlspecialchars($creator['nick_name']); ?>'s Post</h3>
         </div>
 		<?php 
 
@@ -98,7 +98,7 @@ if($_SERVER['REQUEST_METHOD'] == "POST") {
         <div class="panel panel-default">
         <div class="panel-heading">Create Comment</div>
         <div class="panel-body">
-		<form action="create_comment.php" method="post">
+		<form action="/create_comment.php" method="post">
             <input type="hidden" name="csrftoken" value="<?php echo $_COOKIE['token_ses_data']; ?>">
             <input type="hidden" name="postid" value="<?php echo $post_id; ?>">
             <div class="form-group">
