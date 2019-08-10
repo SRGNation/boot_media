@@ -44,9 +44,9 @@ $ccount = mysqli_num_rows($get_comments);
 		<?php PrintNavBar('home'); ?>
 		<div class="container">
 			<div class="page-header">
-				<h1><?php echo printUserAvatar($owner_data['id'], '40px').' '.htmlspecialchars($owner_data['nick_name']); ?>'s post</h1>
+				<h1><a href="/users/<?php echo $owner_data['user_name']; ?>"><?php echo printUserAvatar($owner_data['id'], '40px').'</a> '.htmlspecialchars($owner_data['nick_name']); ?>'s post</h1>
 				<?php if(mysqli_num_rows($community) != 0) { ?><h3><?php 
-				echo '<img src="'.htmlspecialchars($com_row['community_icon']).'" class="img-rounded" style="width: 40px;height: 40px;"> ';
+				echo '<a href="/communities/'.$post['post_community'].'"><img src="'.htmlspecialchars($com_row['community_icon']).'" class="img-rounded" style="width: 40px;height: 40px;"></a> ';
 				echo htmlspecialchars($com_row['community_name']); ?><?php } ?></h3>
 				<p>Posted <?php echo humanTiming(strtotime($post['date_time'])); ?></p>
 			</div>
@@ -75,7 +75,7 @@ $ccount = mysqli_num_rows($get_comments);
 								$get_user = $db->query("SELECT id, user_avatar, user_name FROM users WHERE id = ".$comment['creator']);
 								$creator = mysqli_fetch_array($get_user);
 
-								echo '<li class="list-group-item"><a href="/users/'.$creator['user_name'].'"><img src="'.htmlspecialchars($creator['user_avatar']).'" class="img-rounded" style="width: 35px;height: 35px;"> </a> '.htmlspecialchars($comment['comment_body']).'<br><br>';
+								echo '<li class="list-group-item"><a href="/users/'.$creator['user_name'].'">'.printUserAvatar($comment['creator'], '35px').'</a> '.htmlspecialchars($comment['comment_body']).'<br><br>';
 								printLikeButton($comment['id'], 1);
 								echo '<div align="left"><span style="color: #c4c4c4;">'.humanTiming(strtotime($comment['date_time'])).'</span></div></li>';
 							}

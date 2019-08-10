@@ -3,17 +3,20 @@ php_value display_errors 1
 RewriteEngine on
 
 RewriteRule ^communities$ community_list.php
+RewriteRule ^communities/create$ create_community.php
 RewriteRule ^communities/recommended$ communitiy_list.php?type=recommended
 RewriteRule ^communities/([0-9]+)$ communities.php?id=$1
 RewriteRule ^communities/([0-9]+)/post$ create_post.php?id=$1
 RewriteRule ^posts/([0-9]+)$ post.php?id=$1
 RewriteRule ^posts/([0-9]+)/html$ post.php?id=$1&view_html
 RewriteRule ^posts/([0-9]+)/comment$ create_comment.php?id=$1
+RewriteRule ^posts/([0-9]+)/delete$ delete_post.php?id=$1
 RewriteRule ^notifications$ notifications.php
 RewriteRule ^delete_post/([0-9]+)$ delete_post.php?id=$1
 RewriteRule ^users/edit$ profile_settings.php
 RewriteRule ^users/([A-Za-z0-9_-]+)$ profile.php?id=$1&page=profile [QSA,L]
 RewriteRule ^users/([A-Za-z0-9_-]+)/likes$ profile.php?id=$1&page=likes [QSA,L]
+RewriteRule ^users/([A-Za-z0-9_-]+)/posts$ profile.php?id=$1&page=posts [QSA,L]
 RewriteRule ^users/([A-Za-z0-9_-]+)/comments$ profile.php?id=$1&page=comments [QSA,L]
 RewriteRule ^users/([A-Za-z0-9_-]+)/followers$ profile.php?id=$1&page=followers [QSA,L]
 RewriteRule ^users/([A-Za-z0-9_-]+)/following$ profile.php?id=$1&page=following [QSA,L]

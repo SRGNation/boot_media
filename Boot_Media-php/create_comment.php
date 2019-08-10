@@ -17,8 +17,6 @@ if(isset($_GET['id'])) {
 	if(mysqli_num_rows($post) == 0 || $row['is_deleted'] > 1) {
 		exit('This post doesn\'t exist.');
 	}
-} else {
-	exit('There is no Post ID.');
 }
 
 $get_creator = $db->query("SELECT nick_name, user_avatar, user_name FROM users WHERE id = ".$row['creator']);

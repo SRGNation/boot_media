@@ -22,7 +22,7 @@ function PrintNavBar($page) {
           } else {
             echo '<ul class="nav navbar-nav navbar-right">
              <li><a href="/users/'.$user['user_name'].'"><span>'.printUserAvatar($user['id'], '25px').'</span> User Profile</a></li>
-            <li><a href="logout.php?token='.$_COOKIE['token_ses_data'].'"><span class="glyphicon glyphicon-log-in"></span> Logout</a></li>
+            <li><a href="/logout.php?token='.$_COOKIE['token_ses_data'].'"><span class="glyphicon glyphicon-log-in"></span> Logout</a></li>
             <li><a href="/users/edit"><span class="glyphicon glyphicon-cog"></span> User Settings</a></li>
             </ul>
            </div>';
@@ -45,7 +45,7 @@ function PrintHeader($name) {
   </head>';
 }
 
-function PrintPost($id) {
+function PrintPost($id, $show_extra_info) {
   global $db;
 
   $get_post = $db->query("SELECT * FROM posts WHERE id = $id");
@@ -53,6 +53,9 @@ function PrintPost($id) {
 
   $get_comments = $db->query("SELECT id FROM comments WHERE comment_post = ".$row['id']);
   $ccount = mysqli_num_rows($get_comments);
+
+  $get_comm = $db->query("SELECT id, community_name FROM communities WHERE id = ".$row['post_community']);
+  $community = mysqli_fetch_array($get_comm);
 
   if(mysqli_num_rows($get_post) != 0) {
     $get_user = $db->query("SELECT id, user_avatar, user_name FROM users WHERE id = ".$row['creator']);
@@ -79,7 +82,7 @@ function PrintPost($id) {
       echo '<img src="'.htmlspecialchars($row['post_image']).'" class="img-rounded" style="width: 50%;height: auto;"></img><br><br>';
     }
     printLikeButton($row['id'], 0);
-    echo '<div align="left">Comments <span class="badge">'.$ccount.'</span> <span style="color: #c4c4c4;">'.humanTiming(strtotime($row['date_time'])).'</span></div></li>';
+    echo '<div align="left">Comments <span class="badge">'.$ccount.'</span> <span style="color: #c4c4c4;">'.humanTiming(strtotime($row['date_time'])).''.($show_extra_info == 1 ? ', '.htmlspecialchars($community['community_name']) : '').'</span></div></li>';
   }
 }
 
