@@ -19,9 +19,9 @@ $like_type = $_POST['likeType'];
 $remove = $_POST['remove'];
 
 if($like_type == 0) {
-	$get_post = $db->query("SELECT * FROM posts WHERE id = $id AND is_deleted = 0");
+	$get_post = $db->query("SELECT id FROM posts WHERE id = $id AND is_deleted < 2");
 } else {
-	$get_post = $db->query("SELECT * FROM comments WHERE id = $id AND is_deleted = 0");
+	$get_post = $db->query("SELECT id FROM comments WHERE id = $id AND is_deleted < 2");
 }
 
 if(mysqli_num_rows($get_post) == 0) {

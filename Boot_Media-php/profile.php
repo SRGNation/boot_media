@@ -11,7 +11,7 @@ if(!isset($_GET['page'])) {
 }
 
 $username = mysqli_real_escape_string($db,$_GET['id']);
-$get_use_data = $db->query("SELECT id, user_name, nick_name, user_bio FROM users WHERE user_name = '$username'");
+$get_use_data = $db->query("SELECT id, user_name, nick_name, user_bio, date_created, user_type, admin_level FROM users WHERE user_name = '$username'");
 $user_exists = mysqli_num_rows($get_use_data);
 $users = mysqli_fetch_array($get_use_data);
 
@@ -31,13 +31,13 @@ if($user_exists == 0) {
 $get_posts = $db->query("SELECT id, post_community FROM posts WHERE creator = ".$users['id']." AND is_deleted < 2 ORDER BY date_time DESC LIMIT 5");
 
 //Get likes
-$get_likes = $db->query("SELECT id, post_like FROM likes WHERE like_type = 0 AND creator = ".$users['id']." ORDER BY id DESC LIMIT 5");
+$get_likes = $db->query("SELECT id, post_like FROM likes WHERE like_type = 0 AND post_like NOT IN (SELECT id FROM posts WHERE is_deleted > 1 AND id = post_like) AND creator = ".$users['id']." ORDER BY id DESC LIMIT 5");
 
 if($_GET['page'] == 'posts') {
-	$get_posts = $db->query("SELECT id, post_community FROM posts WHERE creator = ".$users['id']." AND is_deleted < 2 ORDER BY date_time DESC LIMIT 30");
+	$get_posts = $db->query("SELECT id, post_community (SELECT COUNT(*) FROM posts WHERE creator = ".$users['id']." AS post_count) FROM posts WHERE creator = ".$users['id']." AND is_deleted < 2 ORDER BY date_time DESC LIMIT 30");
 } 
 elseif($_GET['page'] == 'likes') {
-	$get_likes = $db->query("SELECT id, post_like FROM likes WHERE like_type = 0 AND creator = ".$users['id']." ORDER BY id DESC LIMIT 30");
+	$get_likes = $db->query("SELECT id, post_like FROM likes WHERE like_type = 0 AND post_like NOT IN (SELECT id FROM posts WHERE is_deleted > 1 AND id = post_like) AND creator = ".$users['id']." ORDER BY id DESC LIMIT 30");
 }
 elseif($_GET['page'] == 'comments') {
 	$get_comments = $db->query("SELECT * FROM comments WHERE creator = ".$users['id']." AND is_deleted < 2 ORDER BY date_time DESC LIMIT 30");
@@ -55,7 +55,23 @@ elseif($_GET['page'] == 'comments') {
 		<?php PrintNavBar('profile'); ?>
 		<div class="container">
 			<div class="page-header">
-				<h1><?php echo printUserAvatar($users['id'], '40px'); ?> <?php echo htmlspecialchars($users['nick_name']) ?>'s Profile</h1>
+				<h1><?php echo printUserAvatar($users['id'], '40px'); ?> <?php echo htmlspecialchars($users['nick_name']); ?>'s Profile</h1>
+				<p><b>Username:</b> <?php echo $users['user_name'] ?>, <b>Since:</b> <?php echo humanTiming(strtotime($users['date_created'])); ?> 
+				<?php
+					if($users['user_type'] == 1) {
+						echo '<span class="label label-danger">Deleted</span> ';
+					} elseif($users['user_type'] == 2) {
+						echo '<span class="label label-danger">Banned</span> ';
+					} elseif($users['user_type'] == 3) {
+						echo '<span class="label label-success">V.I.P</span> ';
+					} elseif($users['user_type'] == 4) {
+						echo '<span class="label label-success">Owner</span> ';
+					}
+
+					if($users['admin_level'] > 0) {
+						echo '<span class="label label-success">Admin</span> ';
+					}
+ 				?></p>
 			</div>
 			<ul class="nav nav-tabs">
 				<li <?php if($_GET['page'] == 'profile') {echo 'class="active"';} ?>><a href="/users/<?php echo $users['user_name'] ?>">Profile</a></li>
@@ -101,14 +117,13 @@ elseif($_GET['page'] == 'comments') {
 						<?php 
 							if(mysqli_num_rows($get_likes) != 0) {
 								while($like = mysqli_fetch_array($get_likes)) {
-									$get_post = $db->query("SELECT id, is_deleted, post_community FROM posts WHERE id = ".$like['like_type']);
-									$post = mysqli_fetch_array();
-									if($post['is_deleted'] < 2) {
-										if($post['post_community'] != 0) {
-											PrintPost($like['post_like'], 1);
-										} else {
-											PrintPost($like['post_like'], 0);
-										}
+									$get_post = $db->query("SELECT id, is_deleted, post_community FROM posts WHERE id = ".$like['post_like']);
+									$post = mysqli_fetch_array($get_post);
+
+									if($post['post_community'] != 0) {
+										PrintPost($like['post_like'], 1);
+									} else {
+										PrintPost($like['post_like'], 0);
 									}
 								}
 							} else {
@@ -121,7 +136,10 @@ elseif($_GET['page'] == 'comments') {
 			<?php if($_GET['page'] == 'posts') {?> 
 				<div class="panel panel-default">
 					<div class="panel-heading">
-						All Posts <span class="badge"><?php echo mysqli_num_rows($get_posts); ?></span>
+						All Posts <span class="badge"><?php
+						$posts = mysqli_fetch_array($get_posts);
+						echo $posts['post_count'];
+						?></span>
 					</div>
 					<div class="panel-body">
 						<?php 
@@ -152,14 +170,13 @@ elseif($_GET['page'] == 'comments') {
 						<?php 
 							if(mysqli_num_rows($get_likes) != 0) {
 								while($like = mysqli_fetch_array($get_likes)) {
-									$get_post = $db->query("SELECT id, is_deleted, post_community FROM posts WHERE id = ".$like['like_type']);
-									$post = mysqli_fetch_array();
-									if($post['is_deleted'] < 2) {
-										if($post['post_community'] != 0) {
-											PrintPost($like['post_like'], 1);
-										} else {
-											PrintPost($like['post_like'], 0);
-										}
+									$get_post = $db->query("SELECT id, is_deleted, post_community FROM posts WHERE id = ".$like['post_like']);
+									$post = mysqli_fetch_array($get_post);
+
+									if($post['post_community'] != 0) {
+										PrintPost($like['post_like'], 1);
+									} else {
+										PrintPost($like['post_like'], 0);
 									}
 								}
 							} else {

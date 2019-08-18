@@ -19,7 +19,7 @@ if(isset($_GET['id'])) {
 	}
 }
 
-$get_creator = $db->query("SELECT nick_name, user_avatar, user_name FROM users WHERE id = ".$row['creator']);
+$get_creator = $db->query("SELECT id, nick_name, user_avatar, user_name FROM users WHERE id = ".$row['creator']);
 $creator = mysqli_fetch_array($get_creator);
 
 if($_SERVER['REQUEST_METHOD'] == "POST") {
@@ -84,7 +84,7 @@ if($_SERVER['REQUEST_METHOD'] == "POST") {
         <div class="container">
         <div class="page-header">    
 		  <h1>Create Comment</h1>
-		  <h3><?php echo printUserAvatar($creator['user_avatar'], '40px'); ?> <?php echo htmlspecialchars($creator['nick_name']); ?>'s Post</h3>
+		  <h3><?php echo printUserAvatar($creator['id'], '40px'); ?> <?php echo htmlspecialchars($creator['nick_name']); ?>'s Post</h3>
         </div>
 		<?php 
 
