@@ -13,7 +13,7 @@ RewriteRule ^posts/([0-9]+)/comment$ create_comment.php?id=$1
 RewriteRule ^posts/([0-9]+)/delete$ delete_post.php?id=$1
 RewriteRule ^notifications$ notifications.php
 RewriteRule ^delete_post/([0-9]+)$ delete_post.php?id=$1
-RewriteRule ^users/edit$ profile_settings.php
+RewriteRule ^settings/profile$ profile_settings.php
 RewriteRule ^users/([A-Za-z0-9_-]+)$ profile.php?id=$1&page=profile [QSA,L]
 RewriteRule ^users/([A-Za-z0-9_-]+)/likes$ profile.php?id=$1&page=likes [QSA,L]
 RewriteRule ^users/([A-Za-z0-9_-]+)/posts$ profile.php?id=$1&page=posts [QSA,L]
@@ -24,6 +24,7 @@ RewriteRule ^rules$ rules.php
 RewriteRule ^check_update.json$ check_notifs.php
 RewriteRule ^register$ signup.php
 RewriteRule ^login$ signin.php
+RewriteRule ^api/users/([A-Za-z0-9_-]+)/info.json$ api.php?token=$1&type=info
 
 php_value date.timezone "America/New_York"
 

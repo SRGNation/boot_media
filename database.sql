@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Aug 04, 2019 at 11:17 PM
+-- Generation Time: Aug 26, 2019 at 12:17 AM
 -- Server version: 10.1.29-MariaDB
 -- PHP Version: 7.2.0
 
@@ -102,6 +102,7 @@ CREATE TABLE `sessions` (
   `id` int(11) NOT NULL,
   `user_id` int(11) NOT NULL,
   `token_hash` varchar(256) NOT NULL,
+  `website` varchar(32) DEFAULT NULL,
   `date_time` datetime(4) NOT NULL DEFAULT CURRENT_TIMESTAMP(4),
   `ip` varchar(32) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
@@ -124,6 +125,23 @@ CREATE TABLE `users` (
   `user_type` tinyint(3) NOT NULL,
   `admin_level` tinyint(3) NOT NULL,
   `user_bio` varchar(2000) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `websites`
+--
+
+CREATE TABLE `websites` (
+  `id` int(11) NOT NULL,
+  `title` varchar(32) DEFAULT NULL,
+  `name` varchar(64) DEFAULT NULL,
+  `url` varchar(256) DEFAULT NULL,
+  `token` varchar(60) DEFAULT NULL,
+  `owner` int(11) NOT NULL,
+  `date_created` datetime(4) NOT NULL DEFAULT CURRENT_TIMESTAMP(4),
+  `status` tinyint(1) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 --
@@ -167,6 +185,12 @@ ALTER TABLE `users`
   ADD PRIMARY KEY (`id`);
 
 --
+-- Indexes for table `websites`
+--
+ALTER TABLE `websites`
+  ADD PRIMARY KEY (`id`);
+
+--
 -- AUTO_INCREMENT for dumped tables
 --
 
@@ -204,6 +228,12 @@ ALTER TABLE `sessions`
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `websites`
+--
+ALTER TABLE `websites`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 COMMIT;
 

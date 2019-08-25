@@ -34,13 +34,16 @@ $get_posts = $db->query("SELECT id, post_community FROM posts WHERE creator = ".
 $get_likes = $db->query("SELECT id, post_like FROM likes WHERE like_type = 0 AND post_like NOT IN (SELECT id FROM posts WHERE is_deleted > 1 AND id = post_like) AND creator = ".$users['id']." ORDER BY id DESC LIMIT 5");
 
 if($_GET['page'] == 'posts') {
-	$get_posts = $db->query("SELECT id, post_community (SELECT COUNT(*) FROM posts WHERE creator = ".$users['id']." AS post_count) FROM posts WHERE creator = ".$users['id']." AND is_deleted < 2 ORDER BY date_time DESC LIMIT 30");
+	$get_posts = $db->query("SELECT id, post_community FROM posts WHERE creator = ".$users['id']." AND is_deleted < 2 ORDER BY date_time DESC LIMIT 30");
+	$post_count = mysqli_num_rows($db->query("SELECT id FROM posts WHERE creator = ".$users['id']." AND is_deleted < 2"));
 } 
 elseif($_GET['page'] == 'likes') {
 	$get_likes = $db->query("SELECT id, post_like FROM likes WHERE like_type = 0 AND post_like NOT IN (SELECT id FROM posts WHERE is_deleted > 1 AND id = post_like) AND creator = ".$users['id']." ORDER BY id DESC LIMIT 30");
+	$like_count = mysqli_num_rows($db->query("SELECT id, post_like FROM likes WHERE like_type = 0 AND post_like NOT IN (SELECT id FROM posts WHERE is_deleted > 1 AND id = post_like) AND creator = ".$users['id']));
 }
 elseif($_GET['page'] == 'comments') {
 	$get_comments = $db->query("SELECT * FROM comments WHERE creator = ".$users['id']." AND is_deleted < 2 ORDER BY date_time DESC LIMIT 30");
+	$comment_count = mysqli_num_rows($db->query("SELECT id FROM comments WHERE creator = ".$users['id']." AND is_deleted < 2"));
 }
 
 ?>
@@ -136,10 +139,7 @@ elseif($_GET['page'] == 'comments') {
 			<?php if($_GET['page'] == 'posts') {?> 
 				<div class="panel panel-default">
 					<div class="panel-heading">
-						All Posts <span class="badge"><?php
-						$posts = mysqli_fetch_array($get_posts);
-						echo $posts['post_count'];
-						?></span>
+						All Posts <span class="badge"><?php echo $post_count; ?></span>
 					</div>
 					<div class="panel-body">
 						<?php 
@@ -164,7 +164,7 @@ elseif($_GET['page'] == 'comments') {
 			<?php if($_GET['page'] == 'likes') {?> 
 				<div class="panel panel-default">
 					<div class="panel-heading">
-						All Likes <span class="badge"><?php echo mysqli_num_rows($get_likes); ?></span>
+						All Likes <span class="badge"><?php echo $like_count; ?></span>
 					</div>
 					<div class="panel-body">
 						<?php 
@@ -192,7 +192,7 @@ elseif($_GET['page'] == 'comments') {
 			<?php if($_GET['page'] == 'comments') {?> 
 				<div class="panel panel-default">
 					<div class="panel-heading">
-						All Comments <span class="badge"><?php echo mysqli_num_rows($get_comments);?></span>
+						All Comments <span class="badge"><?php echo $comment_count; ?></span>
 					</div>
 					<div class="panel-body">
 						<?php

@@ -23,7 +23,7 @@ function PrintNavBar($page) {
             echo '<ul class="nav navbar-nav navbar-right">
              <li><a href="/users/'.$user['user_name'].'"><span>'.printUserAvatar($user['id'], '25px').'</span> User Profile</a></li>
             <li><a href="/logout.php?token='.$_COOKIE['token_ses_data'].'"><span class="glyphicon glyphicon-log-in"></span> Logout</a></li>
-            <li><a href="/users/edit"><span class="glyphicon glyphicon-cog"></span> User Settings</a></li>
+            <li><a href="/settings/profile"><span class="glyphicon glyphicon-cog"></span> User Settings</a></li>
             </ul>
            </div>';
           }
@@ -125,6 +125,17 @@ function checkRemoteFile($image) {
 
     fclose($fp);
     return false;
+}
+
+function generateRandomString($str_size) {
+  $characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  $charactersLength = strlen($characters);
+  $randstring = '';
+  for ($i = 0; $i < $str_size; $i++) {
+    $randstring .= $characters[rand(0, $charactersLength - 1)];
+  }
+    
+  return $randstring;
 }
 
 function printLikeButton($id, $liketype) {
