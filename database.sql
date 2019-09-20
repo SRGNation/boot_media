@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Aug 26, 2019 at 12:17 AM
+-- Generation Time: Sep 20, 2019 at 08:28 PM
 -- Server version: 10.1.29-MariaDB
 -- PHP Version: 7.2.0
 
@@ -118,13 +118,14 @@ CREATE TABLE `users` (
   `user_name` varchar(32) NOT NULL,
   `user_pass` varchar(60) NOT NULL,
   `nick_name` varchar(32) NOT NULL,
-  `email_address` varchar(200) NOT NULL,
-  `user_avatar` varchar(400) NOT NULL,
-  `user_login_ip` varchar(32) NOT NULL,
+  `email_address` varchar(200) DEFAULT NULL,
+  `user_avatar` varchar(400) DEFAULT NULL,
+  `user_login_ip` varchar(32) DEFAULT NULL,
   `date_created` datetime(4) NOT NULL DEFAULT CURRENT_TIMESTAMP(4),
   `user_type` tinyint(3) NOT NULL,
   `admin_level` tinyint(3) NOT NULL,
-  `user_bio` varchar(2000) NOT NULL
+  `user_bio` varchar(2000) DEFAULT NULL,
+  `hide_liked_posts` tinyint(1) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------

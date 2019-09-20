@@ -31,7 +31,7 @@ if($_SERVER["REQUEST_METHOD"] == 'POST') {
 		$err = 'You\'re already logged in retard.';
 	}
 
-    $check_u = $db->query("SELECT * FROM users WHERE user_name = '".mysqli_real_escape_string($db,$_POST['user_name'])."'");
+    $check_u = $db->query("SELECT id FROM users WHERE user_name = '".mysqli_real_escape_string($db,$_POST['user_name'])."'");
     $thing_exist = mysqli_num_rows($check_u);
 
     if(empty($_POST['user_name'])) {
@@ -60,7 +60,7 @@ if($_SERVER["REQUEST_METHOD"] == 'POST') {
 	}
 
 	if(!isset($err)) {
-		$get_user_id = $db->query("SELECT * FROM users WHERE user_name = '".mysqli_real_escape_string($db,$_POST['user_name'])."'");
+		$get_user_id = $db->query("SELECT id FROM users WHERE user_name = '".mysqli_real_escape_string($db,$_POST['user_name'])."'");
 		$user = mysqli_fetch_array($get_user_id);
 
 		$token = generateRandomString(60);
@@ -103,7 +103,7 @@ if($_SERVER["REQUEST_METHOD"] == 'POST') {
 		<div class="container">
 			<div class="page-header">
 				<h1>Sign In</h1>
-				<p>Sign in to an account to make posts, join communities, message people, and much, much more. If you don't have an account already, then you can <a href="/signup.php">create one</a>.</p>
+				<p>Sign in to an account to make posts, join communities, message people, and much, much more. If you don't have an account already, then you can <a href="/register">create one</a>.</p>
 			</div>
 			<form method="post" action="/login">
 				<?php 
@@ -111,9 +111,6 @@ if($_SERVER["REQUEST_METHOD"] == 'POST') {
 				if(isset($err)) {
 					echo '<div class="alert alert-danger"><b>Error!</b> '.$err.'</div>';
 				}
-
-				?>
-				<?php 
 
 				if(isset($website)) { 
 					echo '<input type="hidden" name="website" value="'.$website.'">';

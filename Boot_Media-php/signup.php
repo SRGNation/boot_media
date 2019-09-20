@@ -67,7 +67,7 @@ if($_SERVER["REQUEST_METHOD"] == 'POST') {
 		<body>
      		 <?php PrintNavBar('home'); ?>
 			<div class="container">
-			<p>Good job! You created an account! You can now <a class="btn btn-primary" href="signin.php">Login</a> to it to enjoy everything Boot_Media has to offer!</p>
+			<p>Good job! You created an account! You can now <a class="btn btn-primary" href="/login">Login</a> to it to enjoy everything Boot_Media has to offer!</p>
 			</body>
 		</html>
     	<?php
@@ -100,7 +100,7 @@ if($_SERVER["REQUEST_METHOD"] == 'POST') {
 				</div>
 				<div class="form-group">
 					<label for="email">Email</label>
-					<p>This will be used for if you forgot your password and you want to reset it. This won't show on your user profile.</p>
+					<p>This will be used for if you forgot your password and you want to reset it, and will also be used to get your Gravatar if you have one. This won't show on your user profile.</p>
 					<input class="form-control" type="text" name="email" maxlength="200" placeholder="something@website.com">
 				</div>
 				<div class="form-group">

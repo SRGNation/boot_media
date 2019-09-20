@@ -11,7 +11,7 @@ if(!isset($_GET['page'])) {
 }
 
 $username = mysqli_real_escape_string($db,$_GET['id']);
-$get_use_data = $db->query("SELECT id, user_name, nick_name, user_bio, date_created, user_type, admin_level FROM users WHERE user_name = '$username'");
+$get_use_data = $db->query("SELECT id, user_name, nick_name, user_bio, date_created, user_type, admin_level, hide_liked_posts".($user['admin_level'] == 0 ? '' : ', user_login_ip, email_address')." FROM users WHERE user_name = '$username'");
 $user_exists = mysqli_num_rows($get_use_data);
 $users = mysqli_fetch_array($get_use_data);
 
@@ -79,11 +79,30 @@ elseif($_GET['page'] == 'comments') {
 			<ul class="nav nav-tabs">
 				<li <?php if($_GET['page'] == 'profile') {echo 'class="active"';} ?>><a href="/users/<?php echo $users['user_name'] ?>">Profile</a></li>
 				<li <?php if($_GET['page'] == 'posts') {echo 'class="active"';} ?>><a href="/users/<?php echo $users['user_name'] ?>/posts">Posts</a></li>
-				<li <?php if($_GET['page'] == 'likes') {echo 'class="active"';} ?>><a href="/users/<?php echo $users['user_name'] ?>/likes">Likes</a></li>
+				<?php if($users['hide_liked_posts'] == 0 || $users['id'] == $user['id']) { ?> <li <?php if($_GET['page'] == 'likes') {echo 'class="active"';} ?>><a href="/users/<?php echo $users['user_name'] ?>/likes">Likes</a></li><?php } ?>
 				<li <?php if($_GET['page'] == 'comments') {echo 'class="active"';} ?>><a href="/users/<?php echo $users['user_name'] ?>/comments">Comments</a></li>
 			</ul>
 			<br>
 			<?php if($_GET['page'] == 'profile') {?> 
+				<?php 
+				if($user['admin_level'] > 0) {
+					$get_sess = $db->query("SELECT id, date_time, ip FROM sessions WHERE user_id = ".$users['id']." AND website IS NULL ORDER BY date_time DESC");
+					$session = mysqli_fetch_array($get_sess);
+				?>
+				<div class="panel panel-default">
+					<div class="panel-heading">
+						Information for Admins
+					</div>
+					<div class="panel-body">
+						<p>User ID: <span class="badge"><?=$users['id']?></span></p>
+						<p>Email Address: <span class="badge"><?=$users['email_address']?></span></p>
+						<p>IP Address: <span class="badge"><?=$users['user_login_ip']?></span></p>
+						<p>Last Login Date: <span class="badge"><?=humanTiming(strtotime($session['date_time']))?></span></p>
+						<p>Last Login IP: <span class="badge"><?=$session['ip']?></span></p>
+						<a class="btn btn-danger" href="/users/<?=$users['user_name']?>/delete">Delete User</a> <a class="btn btn-danger" href="/users/<?=$users['user_name']?>/ban">Ban User</a> <a class="btn btn-danger" href="/users/<?=$users['user_name']?>/purge">Purge</a>
+					</div>
+				</div>
+				<?php } ?>
 				<div class="panel panel-default">
 					<div class="panel-heading">
 						User Bio
@@ -100,11 +119,7 @@ elseif($_GET['page'] == 'comments') {
 						<?php 
 							if(mysqli_num_rows($get_posts) != 0) {
 								while($posts = mysqli_fetch_array($get_posts)) {
-									if($posts['post_community'] != 0) { 
-										PrintPost($posts['id'], 1);
-									} else {
-										PrintPost($posts['id'], 0);
-									}
+									PrintPost($posts['id'], 1);
 								}
 							} else {
 								echo 'This user doesn\'t have any posts yet.';
@@ -112,6 +127,7 @@ elseif($_GET['page'] == 'comments') {
 						?>
 					</div>
 				</div>
+				<?php if($users['hide_liked_posts'] == 0 || $users['id'] == $user['id']) { ?>
 				<div class="panel panel-default">
 					<div class="panel-heading">
 						Recent Likes
@@ -135,7 +151,8 @@ elseif($_GET['page'] == 'comments') {
 						?>
 					</div>
 				</div>
-			<?php } ?>
+			<?php }
+			} ?>
 			<?php if($_GET['page'] == 'posts') {?> 
 				<div class="panel panel-default">
 					<div class="panel-heading">
@@ -145,11 +162,7 @@ elseif($_GET['page'] == 'comments') {
 						<?php 
 							if(mysqli_num_rows($get_posts) != 0) {
 								while($posts = mysqli_fetch_array($get_posts)) {
-									if($posts['post_community'] != 0) { 
-										PrintPost($posts['id'], 1);
-									} else {
-										PrintPost($posts['id'], 0);
-									}
+									PrintPost($posts['id'], 1);
 								}
 							} else {
 								echo 'This user doesn\'t have any posts yet.';
@@ -161,7 +174,11 @@ elseif($_GET['page'] == 'comments') {
 					</div>
 				</div>
 			<?php } ?>
-			<?php if($_GET['page'] == 'likes') {?> 
+			<?php if($_GET['page'] == 'likes') {
+				if($users['hide_liked_posts'] == 1 & $users['id'] != $user['id']) {
+					exit("This user has hidden their like history.");
+				}
+				?> 
 				<div class="panel panel-default">
 					<div class="panel-heading">
 						All Likes <span class="badge"><?php echo $like_count; ?></span>

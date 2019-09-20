@@ -2,6 +2,7 @@ php_value display_errors 1
 
 RewriteEngine on
 
+RewriteRule ^post$ create_post.php
 RewriteRule ^communities$ community_list.php
 RewriteRule ^communities/create$ create_community.php
 RewriteRule ^communities/recommended$ communitiy_list.php?type=recommended
@@ -14,6 +15,8 @@ RewriteRule ^posts/([0-9]+)/delete$ delete_post.php?id=$1
 RewriteRule ^notifications$ notifications.php
 RewriteRule ^delete_post/([0-9]+)$ delete_post.php?id=$1
 RewriteRule ^settings/profile$ profile_settings.php
+RewriteRule ^settings/account$ account_settings.php
+RewriteRule ^settings/sessions$ session_settings.php
 RewriteRule ^users/([A-Za-z0-9_-]+)$ profile.php?id=$1&page=profile [QSA,L]
 RewriteRule ^users/([A-Za-z0-9_-]+)/likes$ profile.php?id=$1&page=likes [QSA,L]
 RewriteRule ^users/([A-Za-z0-9_-]+)/posts$ profile.php?id=$1&page=posts [QSA,L]
@@ -25,6 +28,7 @@ RewriteRule ^check_update.json$ check_notifs.php
 RewriteRule ^register$ signup.php
 RewriteRule ^login$ signin.php
 RewriteRule ^api/users/([A-Za-z0-9_-]+)/info.json$ api.php?token=$1&type=info
+ErrorDocument 404 /404.php
 
 php_value date.timezone "America/New_York"
 

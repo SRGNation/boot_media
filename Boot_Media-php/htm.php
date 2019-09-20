@@ -37,6 +37,7 @@ function PrintHeader($name) {
   <title>'.$name.' - Boot_Media</title>
   <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta charset="utf-8">
     <link rel="stylesheet" href="/css/bootstrap.min.css">
     <link rel="shortcut icon" href="/img/icon.png">
     <script src="/js/jquery-3.2.1.min.js"></script>
@@ -83,7 +84,7 @@ function PrintPost($id, $show_extra_info) {
       echo '<img src="'.htmlspecialchars($row['post_image']).'" class="img-rounded" style="width: 50%;height: auto;"></img><br><br>';
     }
     printLikeButton($row['id'], 0);
-    echo '<div align="left">Comments <span class="badge">'.$ccount.'</span> <span style="color: #c4c4c4;">'.humanTiming(strtotime($row['date_time'])).''.($show_extra_info == 1 ? ', '.htmlspecialchars($community['community_name']) : '').'</span></div></li>';
+    echo '<div align="left">Comments <span class="badge">'.$ccount.'</span> <span style="color: #c4c4c4;">'.humanTiming(strtotime($row['date_time'])).''.($show_extra_info == 1 ? ', '.($row['post_community'] == 0 ? htmlspecialchars($user['user_name']).'\'s profile' : htmlspecialchars($community['community_name'])) : '').'</span></div></li>';
   }
 }
 
