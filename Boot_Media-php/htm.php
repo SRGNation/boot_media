@@ -47,6 +47,15 @@ function PrintHeader($name) {
 //<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
 }
 
+function PrintCommunityList($id) {
+  global $db;
+
+  $get_community = $db->query("SELECT * FROM communities WHERE id = $id");
+  $row = mysqli_fetch_array($get_community);
+
+  echo '<list class="list-group-item"><img src="'.(empty($row['community_icon']) ? '/img/communityEmpty.png' : htmlspecialchars($row['community_icon'])).'" style="width:50px;height:50px;" class="img-rounded"> <a href="/communities/'.$row['id'].'">'.htmlspecialchars($row['community_name']).'</a></list>';
+}
+
 function PrintPost($id, $show_extra_info) {
   global $db;
 
@@ -76,7 +85,7 @@ function PrintPost($id, $show_extra_info) {
     if($row['uses_html'] == 1) {
       echo '<span class="label label-primary">Uses HTML</span> ';
     }
-    if($row['is_deleted'] == 1) {
+    if($row['is_deleted'] > 0) {
       echo '<span class="label label-danger">Deleted</span> ';
     }
     echo '<br><br>';

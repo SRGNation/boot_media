@@ -12,21 +12,42 @@ $comm_exists = mysqli_num_rows($get_com_data);
 $community = mysqli_fetch_array($get_com_data);
 
 if($comm_exists == 0) {
-	exit('<html>'.PrintHeader('Community doesn\'t exist').'<body>'.PrintNavBar('community').'
-		<div class="container">
-			<div class="page-header">
-				<h1>Community doesn\'t exist.</h1>
-			</div>
-			<p>The community you\'re looking for doesn\'t seem to exist. Sorry for the inconvinience :(</p>
-		</div>
-	</body>
-</html>');
+	if(!isset($_GET['offset']) && !isset($_GET['date_time'])) {
+		exit('<html>'.PrintHeader('Community doesn\'t exist').'<body>'.PrintNavBar('community').'
+			<div class="container">
+				<div class="page-header">
+					<h1>Community doesn\'t exist.</h1>
+				</div>
+				<p>The community you\'re looking for doesn\'t seem to exist. Sorry for the inconvinience :(</p>
+				</div>
+			</body>
+		</html>');
+	} else {
+		exit();
+	}
+}
+
+if(isset($_GET['offset']) && isset($_GET['date_time'])) {
+  $offset = ($_GET['offset'] * 30);
+  $date_time = mysqli_real_escape_string($db,$_GET['date_time']);
+  $get_posts = $db->query("SELECT id FROM posts WHERE post_community = $community_id AND is_deleted = 0 AND date_time < '$date_time' ORDER BY date_time DESC LIMIT 30 offset $offset");
+
+  while($post = mysqli_fetch_array($get_posts)) {
+
+    printPost($post['id'],0);
+
+  } 
+
+  exit();
 }
 
 $com_owner_data = $db->query("SELECT id, user_name, nick_name FROM users WHERE id = ".$community['community_owner']);
 $owner_data = mysqli_fetch_array($com_owner_data);
 
 $cpostdata = $db->query("SELECT * FROM posts WHERE post_community = $community_id AND is_deleted = 0 ORDER BY is_pinned DESC, date_time DESC LIMIT 30");
+
+//Gets the amount of people who joined the community
+$like_com_count = mysqli_num_rows($db->query("SELECT id FROM community_joins WHERE community = ".$community['id']));
 
 ?>
 <html>
@@ -36,8 +57,9 @@ $cpostdata = $db->query("SELECT * FROM posts WHERE post_community = $community_i
 		<div class="container">
 			<?php echo '<img src="'.htmlspecialchars($community['community_banner']).'" class="img-rounded" style="width: 100%;height: auto;">'; ?>
 			<div class="page-header">
-				<h1><?php echo '<img src="'.htmlspecialchars($community['community_icon']).'" class="img-rounded" style="width: 50px;height: 50px;"> '.htmlspecialchars($community['community_name']); ?></h1>
+				<h1><?php echo '<img src="'.(empty($community['community_icon']) ? '/img/communityEmpty.png' : htmlspecialchars($community['community_icon'])).'" class="img-rounded" style="width: 50px;height: 50px;"> '.htmlspecialchars($community['community_name']); ?></h1>
 				<p><?php echo htmlspecialchars($community['community_desc']); ?></p>
+				<?php if(isset($_COOKIE['token_ses_data']) & $user['id'] != $community['community_owner']) { ?> <div id="join-community"><button id="<?=$community['id']?>" class="btn btn-primary join-community-button"><span class="join-community-button-text">Join Community</span> <span class="badge"><div class="join-community-count"><?=$like_com_count?></div></span></button></div> <?php } ?>
 				<?php if(mysqli_num_rows($com_owner_data) != 0) { ?>
 				<h4><a href="/users/<?php echo $owner_data['user_name']; ?>"><?php echo printUserAvatar($owner_data['id'], '30px'); ?></a> Community created by <?php echo htmlspecialchars($owner_data['nick_name']); ?></h4> <?php } ?>
 			</div>
@@ -57,7 +79,7 @@ $cpostdata = $db->query("SELECT * FROM posts WHERE post_community = $community_i
 						}
 
 						if(mysqli_num_rows($cpostdata) != 0) {
-							echo '<list class="list-group-item"><button class="btn btn-primary">View More</button></list>';
+							echo '<list id="load-more" class="list-group-item"><button id="load-more-button" data-href="/communities.php?id='.$community['id'].'" date_time="'.date("Y-m-d H:i:s").'" class="btn btn-primary">View More</button></list>';
 						}
 					?>
 				</div>

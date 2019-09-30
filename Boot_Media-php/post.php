@@ -28,27 +28,34 @@ if($post_exists == 0) {
 </html>');
 }
 
-$pos_owner_data = $db->query("SELECT id, user_name, nick_name, user_avatar FROM users WHERE id = ".$post['creator']);
+$pos_owner_data = $db->query("SELECT id, user_name, nick_name, user_avatar, admin_level FROM users WHERE id = ".$post['creator']);
 $owner_data = mysqli_fetch_array($pos_owner_data);
 
-$community = $db->query("SELECT community_name, community_icon FROM communities WHERE id = ".$post['post_community']." AND is_hidden = 0");
+$community = $db->query("SELECT community_name, community_icon, community_owner FROM communities WHERE id = ".$post['post_community']." AND is_hidden = 0");
 $com_row = mysqli_fetch_array($community);
 
 $get_comments = $db->query("SELECT * FROM comments WHERE comment_post = ".$post_id);
 $ccount = mysqli_num_rows($get_comments);
 
+//Checks to see if you're a community admin
+if($com_row['community_owner'] == $user['id']) {
+	$community_admin = 1;
+} else {
+	$community_admin = 0;
+}
+
 ?>
 <html>
 	<?php PrintHeader($owner_data['nick_name'].'\'s post'); ?>
 	<head>
-		<?php PrintNavBar('home'); ?>
+		<?php PrintNavBar('post'); ?>
 		<div class="container">
 			<div class="page-header">
 				<h1><a href="/users/<?php echo $owner_data['user_name']; ?>"><?php echo printUserAvatar($owner_data['id'], '40px').'</a> '.htmlspecialchars($owner_data['nick_name']); ?>'s post</h1>
 				<?php if(mysqli_num_rows($community) != 0) { ?><h3><?php 
-				echo '<a href="/communities/'.$post['post_community'].'"><img src="'.htmlspecialchars($com_row['community_icon']).'" class="img-rounded" style="width: 40px;height: 40px;"></a> ';
+				echo '<a href="/communities/'.$post['post_community'].'"><img src="'.(empty($com_row['community_icon']) ? '/img/communityEmpty.png' : htmlspecialchars($com_row['community_icon'])).'" class="img-rounded" style="width: 40px;height: 40px;"></a> ';
 				echo htmlspecialchars($com_row['community_name']); ?><?php } ?></h3>
-				<p>Posted <?php echo humanTiming(strtotime($post['date_time'])); ?></p>
+				<p>Posted <?php echo humanTiming(strtotime($post['date_time'])); ?><?=($post['is_deleted'] > 0 ? ' <span class="label label-danger">Deleted</span>' : '')?><?=($post['is_pinned'] == 1 ? ' <span class="label label-primary">Pinned</span>' : '')?></p>
 			</div>
 		<?php if($post['uses_html'] == 1 && $view_html == false && $owner_data['id'] != $user['id']) {
 			?>
@@ -61,6 +68,9 @@ $ccount = mysqli_num_rows($get_comments);
 			echo '<img src="'.htmlspecialchars($post['post_image']).'" class="img-rounded" style="width: 70%;height: auto;"></img><br><br>';
 		}
 			printLikeButton($post['id'], 0);
+		if($user['id'] == $owner_data['id'] || $user['admin_level'] > $owner_data['admin_level'] || $community_admin == 1) {
+			echo '<a class="btn btn-danger" href="/posts/'.$post_id.'/delete">Delete</a>';
+		}
 		?>
 			<br><br>
 			<?php if(isset($_COOKIE['token_ses_data'])) { ?> <a class="btn btn-primary" href="/posts/<?php echo $post_id; ?>/comment"><span class="badge">+</span> Create comment</a><br><br> <?php } ?>

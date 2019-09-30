@@ -2,13 +2,15 @@
 require("connect.php");
 include("htm.php");
 
+//Gets the recommended communities.
 $get_rec_commun = $db->query("SELECT * FROM communities WHERE is_recommend = 1 LIMIT 4");
 $rc_count = mysqli_num_rows($get_rec_commun);
 
+//Gets the post feed. If you aren't logged in, the feed will contain posts from the recommended communities. If you are, it will contain posts from users you followed, and the communities you joined. So it's kind of like Reddit!
 if(!isset($_COOKIE['token_ses_data'])) {
 	$get_feed = $db->query("SELECT id FROM posts WHERE post_community IN (SELECT id FROM communities WHERE is_recommend = 1) AND is_deleted = 0 ORDER BY date_time DESC LIMIT 30");
 } else {
-	$get_feed = $db->query("SELECT id FROM posts WHERE creator IN (SELECT id FROM users WHERE id = ".$user['id'].") AND is_deleted = 0 ORDER BY date_time DESC LIMIT 30");
+	$get_feed = $db->query("SELECT id FROM posts WHERE is_deleted = 0 AND (creator IN (SELECT id FROM users WHERE id = ".$user['id'].") OR post_community IN (SELECT id FROM community_joins WHERE creator = ".$user['id'].")) ORDER BY date_time DESC LIMIT 30");
 }
 $post_count = mysqli_num_rows($get_feed);
 
@@ -38,7 +40,7 @@ $post_count = mysqli_num_rows($get_feed);
 						echo 'There are no communities yet.';
 					} else {
 						while($rec_com = mysqli_fetch_array($get_rec_commun)) {
-							echo '<list class="list-group-item"><img src="'.htmlspecialchars($rec_com['community_icon']).'" style="width:50px;height:50px;" class="img-rounded"> <a href="/communities/'.$rec_com['id'].'">'.htmlspecialchars($rec_com['community_name']).'</a></list>';
+							PrintCommunityList($rec_com['id']);
 						}
 						echo '<list class="list-group-item"><a href="/communities/recommended">View More</a></list>';
 					} ?>

@@ -1,3 +1,4 @@
+offset = 1;
 $(document).ready(function(){
 
 	$(document).on('click','.like-button',function(){
@@ -28,6 +29,27 @@ $(document).ready(function(){
 			}
 
 		});
+	});
+
+	$(document).on("click","#load-more-button",function(){
+
+		var url = $(this).attr('data-href');
+		var date_time = $(this).attr('date_time');
+
+		$(this).text("Loading...");
+		$("#load-more-button").attr('disabled', '');
+
+		$.get(url + '&offset=' + offset + "&date_time=" + date_time, function(data) {
+		    $(".panel-body").append(data);
+		    $("#load-more").remove();
+		    if(data !== ''){
+		    $(".panel-body").append('<list id="load-more" class="list-group-item"><button id="load-more-button" data-href="' + url + '" date_time="' + date_time + '" class="btn btn-primary">View More</button></list>');
+		    }
+		});
+
+		new_offset = offset + 1;
+		offset = new_offset;
+
 	});
 
 });

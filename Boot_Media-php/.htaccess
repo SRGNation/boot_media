@@ -11,9 +11,8 @@ RewriteRule ^communities/([0-9]+)/post$ create_post.php?id=$1
 RewriteRule ^posts/([0-9]+)$ post.php?id=$1
 RewriteRule ^posts/([0-9]+)/html$ post.php?id=$1&view_html
 RewriteRule ^posts/([0-9]+)/comment$ create_comment.php?id=$1
-RewriteRule ^posts/([0-9]+)/delete$ delete_post.php?id=$1
+RewriteRule ^posts/([0-9]+)/delete$ delete.php?id=$1&type=post
 RewriteRule ^notifications$ notifications.php
-RewriteRule ^delete_post/([0-9]+)$ delete_post.php?id=$1
 RewriteRule ^settings/profile$ profile_settings.php
 RewriteRule ^settings/account$ account_settings.php
 RewriteRule ^settings/sessions$ session_settings.php
@@ -27,7 +26,7 @@ RewriteRule ^rules$ rules.php
 RewriteRule ^check_update.json$ check_notifs.php
 RewriteRule ^register$ signup.php
 RewriteRule ^login$ signin.php
-RewriteRule ^api/users/([A-Za-z0-9_-]+)/info.json$ api.php?token=$1&type=info
+RewriteRule ^api/users/([A-Za-z0-9_-]+)/info.json$ api/userInfo.php?token=$1
 ErrorDocument 404 /404.php
 
 php_value date.timezone "America/New_York"

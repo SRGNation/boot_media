@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Sep 20, 2019 at 08:28 PM
+-- Generation Time: Sep 30, 2019 at 08:20 PM
 -- Server version: 10.1.29-MariaDB
 -- PHP Version: 7.2.0
 
@@ -21,6 +21,21 @@ SET time_zone = "+00:00";
 --
 -- Database: `boot_media_dev`
 --
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `audit_logs`
+--
+
+CREATE TABLE `audit_logs` (
+  `id` int(11) NOT NULL,
+  `type` tinyint(2) NOT NULL COMMENT '0. Post deletion, 1. Post deletion by admin, 2. User deletion, 3. User ban, 4. User purge',
+  `target` int(11) DEFAULT NULL,
+  `source` int(11) DEFAULT NULL,
+  `purge_values` varchar(16) DEFAULT NULL,
+  `community` int(11) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
@@ -47,16 +62,31 @@ CREATE TABLE `comments` (
 
 CREATE TABLE `communities` (
   `id` int(11) NOT NULL,
-  `community_name` varchar(64) NOT NULL,
-  `community_desc` varchar(2000) NOT NULL,
+  `community_name` varchar(64) DEFAULT NULL,
+  `community_desc` varchar(2000) DEFAULT NULL,
   `community_owner` int(11) NOT NULL,
-  `community_icon` varchar(200) NOT NULL,
-  `community_banner` varchar(200) NOT NULL,
+  `community_icon` varchar(200) DEFAULT NULL,
+  `community_banner` varchar(200) DEFAULT NULL,
   `is_recommend` tinyint(1) NOT NULL,
-  `community_level` tinyint(1) NOT NULL,
   `is_hidden` tinyint(1) NOT NULL,
   `is_nsfw` tinyint(1) NOT NULL,
+  `join_perms` tinyint(1) NOT NULL,
+  `view_perms` tinyint(1) NOT NULL,
+  `post_perms` tinyint(4) NOT NULL,
   `date_created` datetime(4) NOT NULL DEFAULT CURRENT_TIMESTAMP(4)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `community_joins`
+--
+
+CREATE TABLE `community_joins` (
+  `id` int(11) NOT NULL,
+  `community` int(11) NOT NULL,
+  `creator` int(11) NOT NULL,
+  `date_joined` datetime(4) NOT NULL DEFAULT CURRENT_TIMESTAMP(4)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
@@ -81,15 +111,15 @@ CREATE TABLE `likes` (
 CREATE TABLE `posts` (
   `id` int(11) NOT NULL,
   `creator` int(11) NOT NULL,
-  `post_body` varchar(2000) NOT NULL,
-  `post_image` varchar(200) NOT NULL,
+  `post_body` varchar(2000) DEFAULT NULL,
+  `post_image` varchar(200) DEFAULT NULL,
   `post_community` int(11) NOT NULL,
   `date_time` datetime(4) NOT NULL DEFAULT CURRENT_TIMESTAMP(4),
   `post_type` tinyint(3) NOT NULL,
   `is_pinned` tinyint(1) NOT NULL,
-  `is_recommend` tinyint(1) NOT NULL,
   `uses_html` tinyint(1) NOT NULL,
-  `is_deleted` tinyint(1) NOT NULL
+  `is_deleted` tinyint(1) NOT NULL,
+  `announce_interval` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
@@ -150,6 +180,12 @@ CREATE TABLE `websites` (
 --
 
 --
+-- Indexes for table `audit_logs`
+--
+ALTER TABLE `audit_logs`
+  ADD PRIMARY KEY (`id`);
+
+--
 -- Indexes for table `comments`
 --
 ALTER TABLE `comments`
@@ -159,6 +195,12 @@ ALTER TABLE `comments`
 -- Indexes for table `communities`
 --
 ALTER TABLE `communities`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `community_joins`
+--
+ALTER TABLE `community_joins`
   ADD PRIMARY KEY (`id`);
 
 --
@@ -196,6 +238,12 @@ ALTER TABLE `websites`
 --
 
 --
+-- AUTO_INCREMENT for table `audit_logs`
+--
+ALTER TABLE `audit_logs`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT for table `comments`
 --
 ALTER TABLE `comments`
@@ -205,6 +253,12 @@ ALTER TABLE `comments`
 -- AUTO_INCREMENT for table `communities`
 --
 ALTER TABLE `communities`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `community_joins`
+--
+ALTER TABLE `community_joins`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --

@@ -1,5 +1,5 @@
 <?php
-require("connect.php");
+require("../connect.php");
 
 $get_session = $db->query("SELECT id, user_id, website, token_hash FROM sessions WHERE token_hash = '".mysqli_real_escape_string($db,$_GET['token'])."'");
 $token = mysqli_fetch_array($get_session);
