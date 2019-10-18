@@ -5,7 +5,7 @@ include("htm.php");
 $get_rec_commun = $db->query("SELECT id FROM communities WHERE is_recommend = 1 LIMIT 10");
 $rc_count = mysqli_num_rows($get_rec_commun);
 
-$get_pop_commun = $db->query("SELECT id FROM communities WHERE is_hidden = 0 AND is_recommend = 0 AND is_nsfw = 0 AND view_perms = 0".(isset($_COOKIE['token_ses_data']) ? " AND id NOT IN (SELECT id FROM community_joins WHERE creator = ".$user['id'].")" : "")." ORDER BY (SELECT COUNT(*) FROM posts WHERE post_community = communities.id AND is_deleted = 0) DESC, (SELECT COUNT(*) FROM community_joins WHERE community = communities.id) DESC, communities.date_created DESC LIMIT 10");
+$get_pop_commun = $db->query("SELECT id FROM communities WHERE is_hidden = 0 AND is_recommend = 0 AND is_nsfw = 0 AND view_perms = 0".(isset($_COOKIE['token_ses_data']) ? " AND id NOT IN (SELECT community FROM community_joins WHERE creator = ".$user['id'].")" : "")." ORDER BY (SELECT COUNT(*) FROM community_joins WHERE community = communities.id) DESC, (SELECT COUNT(*) FROM posts WHERE post_community = communities.id AND is_deleted = 0) DESC, communities.date_created DESC LIMIT 10");
 $pop_count = mysqli_num_rows($get_pop_commun);
 
 ?>

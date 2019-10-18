@@ -8,6 +8,7 @@ RewriteRule ^communities/create$ create_community.php
 RewriteRule ^communities/recommended$ communitiy_list.php?type=recommended
 RewriteRule ^communities/([0-9]+)$ communities.php?id=$1
 RewriteRule ^communities/([0-9]+)/post$ create_post.php?id=$1
+RewriteRule ^communities/([0-9]+)/unjoin$ delete.php?id=$1&type=unjoin
 RewriteRule ^posts/([0-9]+)$ post.php?id=$1
 RewriteRule ^posts/([0-9]+)/html$ post.php?id=$1&view_html
 RewriteRule ^posts/([0-9]+)/comment$ create_comment.php?id=$1

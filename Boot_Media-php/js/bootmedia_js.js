@@ -31,6 +31,23 @@ $(document).ready(function(){
 		});
 	});
 
+	$(document).on('click','.join-community-button',function(){
+		var community = $(this).attr('id');;
+		var count = $("#"+community).closest('div').find('.join-community-count').text();
+
+		$("#"+community).attr('disabled', '');
+
+		$.post('/join_community.php', {community:community}, function(data){
+
+			if(data == 'success') {
+				$("#join-community").html('<a class="btn btn-primary" href="/communities/'+community+'/unjoin"><span class="join-community-button-text">Unjoin Community</span> <span class="badge"><div class="join-community-count">'+(Number(count) + 1)+'</div></span></a>');
+			} else {
+				alert('An error occured: '+data);
+			}
+
+		});
+	});
+
 	$(document).on("click","#load-more-button",function(){
 
 		var url = $(this).attr('data-href');

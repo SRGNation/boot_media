@@ -11,7 +11,7 @@ if(isset($_GET['id'])) {
 	$post_id = $_POST['post_id'];
 }
 
-if($type != 'post') {
+if($type != 'post' & $type != 'unjoin') {
 	include("404.php");
 	exit();
 }
@@ -84,6 +84,27 @@ if($type == 'post') {
 			}
 		}
 	}
+} elseif($type = 'unjoin') {
+	//The title of the webpage
+	$title = 'Unjoin community';
+	//Gets the joined community itself
+	$get_joined = $db->query("SELECT id, community FROM community_joins WHERE creator = ".$user['id']." AND community = ".mysqli_real_escape_string($db,$post_id));
+	if(mysqli_num_rows($get_joined) == 0) {
+		exit('You haven\'t joined this community yet.');
+	}
+	$joined = mysqli_fetch_array($get_joined);
+	//Gets the community the community join is in
+	$get_community = $db->query("SELECT id, community_name, community_icon, community_owner FROM communities WHERE id = ".$joined['community']." AND is_hidden = 0");
+	$community = mysqli_fetch_array($get_community);
+	//Checks if community owner.
+	if($community['community_owner'] == $user['id']) {
+		exit('You can\'t unjoin from your own community.');
+	}
+
+	if($_SERVER['REQUEST_METHOD'] == "POST") {
+		$db->query("DELETE FROM community_joins WHERE creator = ".$user['id']." AND community = ".$community['id']);
+		exit("<div id=\"main-body\">redirecting...<META HTTP-EQUIV=\"refresh\" content=\"0;URL=/communities/$post_id\">");
+	}
 }
 
 ?>
@@ -92,7 +113,7 @@ if($type == 'post') {
 	<body>
 		<?php PrintNavBar('delete'); ?>
 		<div class="container">
-			<?php if($type == 'post')  { ?>
+			<?php if($type == 'post') { ?>
 				<div class="page-header">
 					<h1>Delete post</h1>
 					<h3><?php echo printUserAvatar($creator['id'], '40px'); ?> <?php echo htmlspecialchars($creator['nick_name']); ?>'s Post</h3>
@@ -120,7 +141,20 @@ if($type == 'post') {
         	    </select>
         		<?php } ?>
             </div>
-				<input class="btn btn-danger" type="submit" value="Delete"> <a class="btn btn-primary" href="/posts/<?=$_GET['id']?>">Cancel</a>
+				<input class="btn btn-danger" type="submit" value="Delete"> <a class="btn btn-primary" href="/posts/<?=$post_id?>">Cancel</a>
+				</form>
+			<?php } ?>
+			<?php if($type == 'unjoin') { ?>
+				<div class="page-header">
+					<h1>Unjoin community</h1>
+					<h3><img src="<?=(empty($community['community_icon']) ? '/img/communityEmpty.png' : htmlspecialchars($community['community_icon']))?>" class="img-rounded" style="width: 40px;height: 40px;"> <?=$community['community_name']?></h3>
+				</div>
+				<form method="post" action="/delete.php">
+					<div class="alert alert-danger">Are you sure you want to unjoin this community?</div>
+            		<input type="hidden" value="unjoin" name="type">
+            		<input type="hidden" value="<?=$post_id?>" name="post_id">
+            		<input type="hidden" value="<?=$_COOKIE['token_ses_data']?>" name="csrftoken">
+					<input class="btn btn-danger" type="submit" value="Unjoin"> <a class="btn btn-primary" href="/communities/<?=$post_id?>">Cancel</a>
 				</form>
 			<?php } ?>
 		</div>

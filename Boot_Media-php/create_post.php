@@ -92,7 +92,7 @@ if($_SERVER['REQUEST_METHOD'] == "POST") {
         <div class="page-header">    
 		  <h1>Create Post</h1>
 		  <?php if(isset($community_id)) { ?><h3><?php 
-		  echo '<img src="'.htmlspecialchars($row['community_icon']).'" class="img-rounded" style="width: 40px;height: 40px;"> ';
+		  echo '<img src="'.(empty($row['community_icon']) ? '/img/communityEmpty.png' : htmlspecialchars($row['community_icon'])).'" class="img-rounded" style="width: 40px;height: 40px;"> ';
 		  echo htmlspecialchars($row['community_name']); ?><?php } ?></h3>
         </div>
 		<?php 
