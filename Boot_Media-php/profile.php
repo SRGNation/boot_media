@@ -11,7 +11,7 @@ if(!isset($_GET['page'])) {
 }
 
 $username = mysqli_real_escape_string($db,$_GET['id']);
-$get_use_data = $db->query("SELECT id, user_name, nick_name, user_bio, date_created, user_type, admin_level, hide_liked_posts".($user['admin_level'] == 0 ? '' : ', user_login_ip, email_address')." FROM users WHERE user_name = '$username'");
+$get_use_data = $db->query("SELECT id, user_name, nick_name, user_bio, date_created, user_type, admin_level, hide_liked_posts, user_login_ip, email_address FROM users WHERE user_name = '$username'");
 $user_exists = mysqli_num_rows($get_use_data);
 $users = mysqli_fetch_array($get_use_data);
 

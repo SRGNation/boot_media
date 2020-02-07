@@ -38,7 +38,7 @@ $get_comments = $db->query("SELECT * FROM comments WHERE comment_post = ".$post_
 $ccount = mysqli_num_rows($get_comments);
 
 //Checks to see if you're a community admin
-if($com_row['community_owner'] == $user['id']) {
+if(!empty($_COOKIE['token_ses_data']) && $com_row['community_owner'] == $user['id']) {
 	$community_admin = 1;
 } else {
 	$community_admin = 0;
@@ -62,7 +62,7 @@ if($com_row['community_owner'] == $user['id']) {
 		<div class="alert alert-danger"><b>Warning!</b> This post uses HTML, so there might be malicious code inside it. So if you <b>REALLY</b> trust this post, then you can continue <a href="/posts/<?php echo $_GET['id']; ?>/html">here</a>!</div>
 			<?php
 		}?>
-		<p><?php if($post['uses_html'] == 0 || ($view_html == false && $owner_data['id'] != $user['id'])) {echo htmlspecialchars($post['post_body']);} else {echo htmlspecialchars_decode($post['post_body'], ENT_HTML5);} ?></p>
+		<p><?php if($post['uses_html'] == 0 || ($view_html == false && $owner_data['id'] != $user['id'])) {echo nl2br(htmlspecialchars($post['post_body']));} else {echo htmlspecialchars_decode($post['post_body'], ENT_HTML5);} ?></p>
 		<?php
 		if(!empty($post['post_image'])) {
 			echo '<img src="'.htmlspecialchars($post['post_image']).'" class="img-rounded" style="width: 70%;height: auto;"></img><br><br>';

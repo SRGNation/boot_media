@@ -16,7 +16,7 @@ $post_count = mysqli_num_rows($get_feed);
 
 ?>
 <html>
-	<?php PrintHeader('Main'); ?>
+	<?php PrintHeader('Home'); ?>
 	<body>
       <?php PrintNavBar('home'); ?>
 		<div class="container">
@@ -31,7 +31,7 @@ $post_count = mysqli_num_rows($get_feed);
 			<p>Why not join the fun? <a class="btn btn-primary" href="signup.php">Create an Account</a> or <a class="btn btn-primary" href="/login">Login</a> if you already have one.</p> <?php } else {?>
 			<p>Welcome to Boot_Media, <?php echo $user['nick_name']; ?>!
 			<?php } ?>
-			<div class="panel panel-default">
+			<div class="panel panel-default visible-lg">
 				<div class="panel-heading">
 					Recommended Communities
 				</div>
@@ -58,7 +58,6 @@ $post_count = mysqli_num_rows($get_feed);
 						while($feed = mysqli_fetch_array($get_feed)) {
 							PrintPost($feed['id'], 1);
 						}
-
 						if($post_count != 0) {
 							echo '<list class="list-group-item"><button class="btn btn-primary">View More</button></list>';
 						}

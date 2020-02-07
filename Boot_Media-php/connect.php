@@ -17,12 +17,6 @@ function rip() {
     <script type="text/javascript" src="/js/bootmedia_js.js"></script>
 	</head>
 	<body>
-		<nav class="navbar navbar-inverse">
-			<div class="container-fluid">
-    			<div class="navbar-header">
-      				<a class="navbar-brand" href="/">Boot_Media</a>
-    			</div>
-		</nav>
 		<div class="container">
 			<h1>Database Error</h1>
 			<p>We\'re sorry gamers, but we weren\'t able to connect to the database of Boot_Media as of now. Looks like your memes, cat pictures, and pictures of your latest Minecraft builds will have to wait until another time :(</p>
@@ -57,5 +51,5 @@ if(isset($_COOKIE['token_ses_data'])) {
 	}
 }
 
-@$db->query('SET time_zone = "-4:00";') || rip();
+$db->query('SET time_zone = America/New_York');
 date_default_timezone_set('America/New_York');

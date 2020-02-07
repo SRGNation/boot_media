@@ -155,8 +155,12 @@ function printLikeButton($id, $liketype) {
   $find_lc = $db->query("SELECT id FROM likes WHERE post_like = $id AND like_type = $liketype");
   $like_count = mysqli_num_rows($find_lc);
 
-  $check_if_liked = $db->query("SELECT id FROM likes WHERE post_like = $id AND like_type = $liketype AND creator = ".$user['id']);
-  $liked = (mysqli_num_rows($check_if_liked) > 0 ? 1 : 0);
+  if(!empty($_COOKIE['token_ses_data'])) {
+    $check_if_liked = $db->query("SELECT id FROM likes WHERE post_like = $id AND like_type = $liketype AND creator = ".$user['id']);
+    $liked = (mysqli_num_rows($check_if_liked) > 0 ? 1 : 0);
+  } else {
+    $liked = 0;
+  }
 
   if($liketype == 0) {
     $p_find = $db->query("SELECT creator FROM posts WHERE id = $id");
