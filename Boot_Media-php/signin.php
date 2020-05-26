@@ -25,7 +25,9 @@ if(isset($_GET['website'])) {
 }
 
 if($_SERVER["REQUEST_METHOD"] == 'POST') {
-	$website = mysqli_real_escape_string($db,$_POST['website']);
+	if(isset($_POST['website'])) {
+		$website = mysqli_real_escape_string($db,$_POST['website']);
+	}
 
 	if(isset($_COOKIE['token_ses_data'])) {
 		$err = 'You\'re already logged in retard.';
@@ -70,7 +72,7 @@ if($_SERVER["REQUEST_METHOD"] == 'POST') {
         $db->query("UPDATE users SET user_login_ip = '".$_SERVER['REMOTE_ADDR']."' WHERE id = ".$user['id']);
         setcookie('token_ses_data', $token, time() + (86400 * 364), '/');
 
-        if(isset($website)) {
+        /*if(isset($website)) {
 			$get_website = $db->query("SELECT id, title, name, url, status FROM websites WHERE title = '$website'");
 			$websites = mysqli_fetch_array($get_website);
 
@@ -87,7 +89,7 @@ if($_SERVER["REQUEST_METHOD"] == 'POST') {
         		$db->query("INSERT INTO sessions (user_id, token_hash, website) VALUES (".$user['id'].", '$token', '".mysqli_real_escape_string($db,$_POST['website'])."')");
         		exit("<div id=\"main-body\">redirecting...<META HTTP-EQUIV=\"refresh\" content=\"0;URL=".$websites['url']."".$token."\">");
         	}
-        }
+        }*/
 
 		exit("<div id=\"main-body\">redirecting...<META HTTP-EQUIV=\"refresh\" content=\"0;URL=/\">");
 

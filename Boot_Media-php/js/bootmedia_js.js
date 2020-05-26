@@ -54,13 +54,13 @@ $(document).ready(function(){
 		var date_time = $(this).attr('date_time');
 
 		$(this).text("Loading...");
-		$("#load-more-button").attr('disabled', '');
+		$(this).attr('disabled', '');
 
 		$.get(url + '&offset=' + offset + "&date_time=" + date_time, function(data) {
+		    $(".load-more").remove();
 		    $(".panel-body").append(data);
-		    $("#load-more").remove();
 		    if(data !== ''){
-		    $(".panel-body").append('<list id="load-more" class="list-group-item"><button id="load-more-button" data-href="' + url + '" date_time="' + date_time + '" class="btn btn-primary">View More</button></list>');
+		    $(".panel-body").append('<li class="list-group-item load-more"><button id="load-more-button" data-href="' + url + '" date_time="' + date_time + '" class="btn btn-primary">View More</button></li>');
 		    }
 		});
 

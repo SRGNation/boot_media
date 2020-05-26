@@ -1,9 +1,19 @@
 <?php
+//Database settings
+const DB_SERVER = 'localhost';
+const DB_USERNAME = 'root';
+const DB_PASSWORD = '';
+const DB_DATABASE = 'boot_media';
+
+//General settings
+const CONTACT_EMAIL = null;
+const TIMEZONE = 'America/New_York';
 
 //connect.php connects the user to a secret high tech database in which they can view everything Boot_Media and its users have to offer.
-error_reporting(0);
+error_reporting(E_ALL);
 
 function rip() {
+    http_response_code(500);
 	echo '
 	<html>
 	<head>
@@ -26,30 +36,31 @@ function rip() {
 	';
 	exit();
 }
-
-define('DB_SERVER', 'localhost');
-define('DB_USERNAME', 'root');
-define('DB_PASSWORD', '');
-define('DB_DATABASE', 'boot_media');
 $db = mysqli_connect(DB_SERVER,DB_USERNAME,DB_PASSWORD,DB_DATABASE);
 
 if(!$db) {
 	rip();
 }
 
+date_default_timezone_set(TIMEZONE);
+$db->query('SET time_zone = "' . $db->real_escape_string(TIMEZONE) . '"');
+
 if(isset($_COOKIE['token_ses_data'])) {
 	$token_hash = hash('sha512', $_COOKIE['token_ses_data']);
-	$check_tok_exists = $db->query("SELECT * FROM sessions WHERE token_hash = '$token_hash'");
-	$chk_exists = mysqli_num_rows($check_tok_exists);
 
-	if($chk_exists != 0) {
-		$ses_data = mysqli_fetch_array($check_tok_exists);
-		$get_user_data = $db->query("SELECT * FROM users WHERE id = ".$ses_data['user_id']);
-		$user = mysqli_fetch_array($get_user_data);
+	$stmt = $db->prepare("SELECT COUNT(*), user_id FROM sessions WHERE token_hash = ?");
+	$stmt->bind_param('s', $token_hash);
+	$stmt->execute();
+	$result = $stmt->get_result();
+	$row = $result->fetch_assoc();
+
+	if($row['COUNT(*)'] !== 0) {
+		$stmt = $db->prepare("SELECT id, user_name, nick_name, email_address, user_avatar, date_created, user_type, admin_level, user_bio, hide_liked_posts FROM users WHERE id = ?");
+		$stmt->bind_param('i', $row['user_id']);
+		$stmt->execute();
+		$result = $stmt->get_result();
+		$user = $result->fetch_assoc();
 	} else {
 		setcookie('token_ses_data', '', time() - 3600, '/');
 	}
 }
-
-$db->query('SET time_zone = America/New_York');
-date_default_timezone_set('America/New_York');

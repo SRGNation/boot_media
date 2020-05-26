@@ -3,16 +3,47 @@ require("connect.php");
 include("htm.php");
 
 //Gets the recommended communities.
-$get_rec_commun = $db->query("SELECT * FROM communities WHERE is_recommend = 1 LIMIT 4");
-$rc_count = mysqli_num_rows($get_rec_commun);
+$stmt = $db->prepare("SELECT id FROM communities WHERE is_recommend = 1 LIMIT 4");
+$stmt->execute();
+if($stmt->error) {
+	ShowError(500, 'There was an error while grabbing the recommended communities.');
+}
+$rcresult = $stmt->get_result();
+
+if(!isset($_GET['offset'])) {
+	$offset = 0;
+	$date_time = null;
+} else {
+	$offset = ($_GET['offset'] * 30);
+	$date_time = $_GET['date_time'];
+}
 
 //Gets the post feed. If you aren't logged in, the feed will contain posts from the recommended communities. If you are, it will contain posts from users you followed, and the communities you joined. So it's kind of like Reddit!
 if(!isset($_COOKIE['token_ses_data'])) {
-	$get_feed = $db->query("SELECT id FROM posts WHERE post_community IN (SELECT id FROM communities WHERE is_recommend = 1) AND is_deleted = 0 ORDER BY date_time DESC LIMIT 30");
+	$postdata = $db->query("SELECT id FROM posts WHERE post_community IN (SELECT id FROM communities WHERE is_recommend = 1) AND is_deleted = 0".($offset > 0 ? " AND date_time < '".$db->real_escape_string($date_time)."'" : '')." ORDER BY date_time DESC LIMIT 30 offset ".$db->real_escape_string($offset));
+	/*$stmt = $db->prepare("SELECT id FROM posts WHERE post_community IN (SELECT id FROM communities WHERE is_recommend = 1) AND is_deleted = 0 ORDER BY date_time DESC LIMIT 30");
+	$stmt->execute();
+	if($stmt->error) {
+		ShowError(500, 'There was an error while grabbing the posts from the recommended communities.');
+	}
+	$presult = $stmt->get_result();*/
 } else {
-	$get_feed = $db->query("SELECT id FROM posts WHERE is_deleted = 0 AND (creator IN (SELECT id FROM users WHERE id = ".$user['id'].") OR post_community IN (SELECT id FROM community_joins WHERE creator = ".$user['id'].")) ORDER BY date_time DESC LIMIT 30");
+	$postdata = $db->query("SELECT id FROM posts WHERE is_deleted = 0".($offset > 0 ? " AND (creator IN (SELECT id FROM users WHERE id = ".$user['id'].") OR post_community IN (SELECT community FROM community_joins WHERE creator = ".$user['id'].")) AND date_time < '".$db->real_escape_string($date_time)."'" : '')." ORDER BY date_time DESC LIMIT 30 offset ".$db->real_escape_string($offset));
+	/*$stmt = $db->prepare("SELECT id FROM posts WHERE is_deleted = 0 AND (creator IN (SELECT id FROM users WHERE id = ?) OR post_community IN (SELECT community FROM community_joins WHERE creator = ?)) ORDER BY date_time DESC LIMIT 30");
+	$stmt->bind_param('ii', $user['id'], $user['id']);
+	$stmt->execute();
+	if($stmt->error) {
+		ShowError(500, 'There was an error while grabbing the posts from your personal feed.');
+	}
+	$presult = $stmt->get_result();*/
 }
-$post_count = mysqli_num_rows($get_feed);
+
+if(isset($_GET['offset']) && isset($_GET['date_time'])) {
+	while($post = mysqli_fetch_array($postdata)) {
+		printPost($post['id'],0);
+	} 
+	exit();
+}
 
 ?>
 <html>
@@ -36,11 +67,11 @@ $post_count = mysqli_num_rows($get_feed);
 					Recommended Communities
 				</div>
 				<div class="panel-body">
-					<?php if($rc_count == 0) {
+					<?php if($rcresult->num_rows == 0) {
 						echo 'There are no communities yet.';
 					} else {
-						while($rec_com = mysqli_fetch_array($get_rec_commun)) {
-							PrintCommunityList($rec_com['id']);
+						while($row = $rcresult->fetch_assoc()) {
+							PrintCommunityList($row['id']);
 						}
 						echo '<list class="list-group-item"><a href="/communities/recommended">View More</a></list>';
 					} ?>
@@ -52,14 +83,14 @@ $post_count = mysqli_num_rows($get_feed);
 					Post feed
 				</div>
 				<div class="panel-body">
-					<?php if($post_count == 0) {
+					<?php if(mysqli_num_rows($postdata) == 0) {
 						echo 'There aren\'t any posts in your feed yet. Why don\'t you try following some people and joining communities?';
 					} else {
-						while($feed = mysqli_fetch_array($get_feed)) {
-							PrintPost($feed['id'], 1);
+						while($post = mysqli_fetch_array($postdata)) {
+							PrintPost($post['id'], 1);
 						}
-						if($post_count != 0) {
-							echo '<list class="list-group-item"><button class="btn btn-primary">View More</button></list>';
+						if(mysqli_num_rows($postdata) != 0) {
+							echo '<li class="list-group-item load-more"><button id="load-more-button" data-href="/index.php?i=0" date_time="'.date("Y-m-d H:i:s").'" class="btn btn-primary">View More</button></li>';
 						}
 					} ?>
 				</div>

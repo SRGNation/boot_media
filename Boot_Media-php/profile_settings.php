@@ -20,8 +20,14 @@ if($_SERVER["REQUEST_METHOD"] == 'POST') {
 		$err = 'Nickname is too long.';
 	}
 
-	if(strlen($_POST['user_avatar']) > 200) {
-		$err = 'Avatar URL is too long.';
+	if(isset($_POST['user_avatar'])) {
+		if(strlen($_POST['user_avatar']) > 200) {
+			$err = 'Avatar URL is too long.';
+		}
+
+		if(!empty($_POST['user_avatar']) & !checkRemoteFile($_POST['user_avatar'])) {
+			$err = 'Your avatar is invalid.';
+		}
 	}
 
 	if(strlen($_POST['bio']) > 2000) {
@@ -32,7 +38,15 @@ if($_SERVER["REQUEST_METHOD"] == 'POST') {
 		$err = 'Your hide liked posts setting is invalid.';
 	}
 
-	$avatar = $_POST['user_avatar'];
+	if(isset($_POST['user_avatar'])) {
+		$avatar = $_POST['user_avatar'];
+	} else {
+		$avatar = null;
+	}
+
+	if($using_gravatar & !isset($_POST['use_gravatar'])) {
+		$avatar = null;
+	}
 
 	if(isset($_POST['use_gravatar'])) {
 		if(empty($user['email_address'])) {
@@ -43,11 +57,19 @@ if($_SERVER["REQUEST_METHOD"] == 'POST') {
 	}
 
 	if(!isset($err)) {
-		$db->query("UPDATE users SET nick_name = '".mysqli_real_escape_string($db,$_POST['nick_name'])."', user_avatar = ".($using_gravatar & !isset($_POST['use_gravatar']) ? 'NULL' : '\''.mysqli_real_escape_string($db,$avatar).'\'').", user_bio = '".mysqli_real_escape_string($db,$_POST['bio'])."', hide_liked_posts = ".$_POST['hide_liked_posts']." WHERE id = ".$user['id']);
+		$stmt = $db->prepare("UPDATE users SET nick_name = ?, user_avatar = ?, user_bio = ?, hide_liked_posts = ? WHERE id = ?");
+		$stmt->bind_param('sssii', $_POST['nick_name'], $avatar, $_POST['bio'], $_POST['hide_liked_posts'], $user['id']);
+		$stmt->execute();
+		if($stmt->error) {
+			ShowError(500, 'There was an error while trying save user settings.');
+		}
 
 		//Updates user settings
-		$get_user = $db->query("SELECT * FROM users WHERE id = ".$user['id']);
-		$user = mysqli_fetch_array($get_user);
+		$stmt = $db->prepare("SELECT id, user_name, nick_name, email_address, user_avatar, date_created, user_type, admin_level, user_bio, hide_liked_posts FROM users WHERE id = ?");
+		$stmt->bind_param('i', $row['user_id']);
+		$stmt->execute();
+		$result = $stmt->get_result();
+		$user = $result->fetch_assoc();
 		if(isset($_POST['use_gravatar']))
 			$using_gravatar = true;
 		else
