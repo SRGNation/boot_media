@@ -3,7 +3,7 @@ require('connect.php');
 include('htm.php');
 
 if(isset($_GET['id'])) {
-	$post_id = mysqli_real_escape_string($db,$_GET['id']);
+	$post_id = $_GET['id'];
 }
 
 if(!isset($_COOKIE['token_ses_data'])) {
@@ -11,20 +11,27 @@ if(!isset($_COOKIE['token_ses_data'])) {
 }
 
 if(isset($_GET['id'])) {
-	$post = $db->query("SELECT creator, is_deleted FROM posts WHERE id = $post_id");
-	$row = mysqli_fetch_array($post);
+	$stmt->prepare("SELECT creator, is_deleted, COUNT(*) FROM posts WHERE id = ?");
+	$stmt->bind_param('i', $post_id);
+	$stmt->execute();
+	$result = $stmt->get_result();
+	$row = $result->fetch_assoc();
 
-	if(mysqli_num_rows($post) == 0 || $row['is_deleted'] > 1) {
-		exit('This post doesn\'t exist.');
+	if($row['COUNT(*)'] == 0 || $row['is_deleted'] > 1) {
+		ShowError(404, 'This post doesn\'t exist.');
 	}
 }
 
-$get_creator = $db->query("SELECT id, nick_name, user_avatar, user_name FROM users WHERE id = ".$row['creator']);
-$creator = mysqli_fetch_array($get_creator);
+//TODO: Store this information in the row variable also.
+$stmt->prepare("SELECT id, nick_name, user_avatar, user_name FROM users WHERE id = ?");
+$stmt->bind_param('i', $row['creator']);
+$stmt->execute();
+$result = $stmt->get_result();
+$creator = $result->fetch_assoc();
 
 if($_SERVER['REQUEST_METHOD'] == "POST") {
 	if($_COOKIE['token_ses_data'] != $_POST['csrftoken']) {
-		$err = "Look, Arian Kordi. I know you have some sort of fetish of trying to hack into every single website I make, but please... Stop it... Please, do something better with your life. Ride a bike, go swimming, play some videogames, get a girlfriend, make another fucking Miiverse clone for all I care. Anything to fill up that empty void of yours. Just, please... Stop trying to hack into my social media websites. It's not funny, or cool. It's just annoying.";
+		$err = 'CSRF Check failed.';
 	}
 
 	if(empty($_POST['content'])) {
@@ -59,19 +66,45 @@ if($_SERVER['REQUEST_METHOD'] == "POST") {
 		$err = 'Your Screenshot is invalid.';
 	}
 
+	$stmt = $db->prepare('SELECT COUNT(*) FROM comments WHERE creator = ? AND date_time > NOW() - INTERVAL 15 SECOND');
+	$stmt->bind_param('i', $user['id']);
+	$stmt->execute();
+	if($stmt->error) {
+	    ShowError(500, 'There was an error while grabbing your recent comments.');
+	}
+	$result = $stmt->get_result();
+	$row = $result->fetch_assoc();
+	if($row['COUNT(*)'] > 0) {
+	    $err = 'You\'re making comments too fast! Please try again in a few seconds.';
+	}
+
 	if(!isset($err)) {
-		$db->query("INSERT INTO comments (comment_body, comment_post, comment_type, comment_image, creator) VALUES ('".mysqli_real_escape_string($db,$_POST['content'])."', ".mysqli_real_escape_string($db,$_POST['postid']).", ".mysqli_real_escape_string($db,$_POST['comment_type']).", '".mysqli_real_escape_string($db,$_POST['screenshot'])."', ".$user['id'].")");
+		$stmt->prepare("INSERT INTO comments (comment_body, comment_post, comment_type, comment_image, creator) VALUES (?, ?, ?, ?, ?)");
+		$stmt->bind_param('siisi', $_POST['content'], $_POST['postid'], $_POST['comment_type'], $_POST['screenshot'], $user['id']);
+		$stmt->execute();
+		if($stmt->error) {
+	    	ShowError(500, 'There was an error while posting to the database.');
+		}
 
 		exit("<div id=\"main-body\">redirecting...<META HTTP-EQUIV=\"refresh\" content=\"0;URL=/posts/".$_POST['postid']."\">");
 	} else {
-		$post_id = mysqli_real_escape_string($db,$_POST['postid']);
+		$post_id = $_POST['postid'];
 
-		$post = $db->query("SELECT * FROM post WHERE id = $post_id");
-		$row = mysqli_fetch_array($post);
+		$stmt->prepare("SELECT creator, is_deleted, COUNT(*) FROM posts WHERE id = ?");
+		$stmt->bind_param('i', $post_id);
+		$stmt->execute();
+		$result = $stmt->get_result();
+		$row = $result->fetch_assoc();
 
-		if(mysqli_num_rows($post) == 0 || $row['is_deleted'] > 1) {
-			exit('This post doesn\'t exist.');
-		}	
+		$stmt->prepare("SELECT id, nick_name, user_avatar, user_name FROM users WHERE id = ?");
+		$stmt->bind_param('i', $row['creator']);
+		$stmt->execute();
+		$result = $stmt->get_result();
+		$creator = $result->fetch_assoc();
+
+		if($row['COUNT(*)'] == 0 || $row['is_deleted'] > 1) {
+			ShowError(404, 'This post doesn\'t exist.');
+		}
 	}
 
 }
@@ -97,8 +130,8 @@ if($_SERVER['REQUEST_METHOD'] == "POST") {
         <div class="panel-heading">Create Comment</div>
         <div class="panel-body">
 		<form action="/create_comment.php" method="post">
-            <input type="hidden" name="csrftoken" value="<?php echo $_COOKIE['token_ses_data']; ?>">
-            <input type="hidden" name="postid" value="<?php echo $post_id; ?>">
+            <input type="hidden" name="csrftoken" value="<?=$_COOKIE['token_ses_data']?>">
+            <input type="hidden" name="postid" value="<?=$post_id?>">
             <div class="form-group">
             <label for="content">Comment Content</label>
 			<textarea class="form-control" type="text" rows="4" maxlength="2000" name="content" placeholder="Comment Content goes here."></textarea>

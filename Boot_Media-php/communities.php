@@ -76,7 +76,7 @@ $like_com_count = mysqli_num_rows($db->query("SELECT id FROM community_joins WHE
 				<?php if($communityod['COUNT(*)'] != 0) { ?>
 				<h4><a href="/users/<?=$communityod['user_name']?>"><?php echo printUserAvatar($communityod['id'], '30px'); ?></a> Community created by <?=htmlspecialchars($communityod['nick_name'])?></h4> <?php } ?>
 			</div>
-			<?php if(isset($_COOKIE['token_ses_data'])) { ?> <a class="btn btn-primary" href="/communities/<?=$communities['id']?>/post"><span class="badge">+</span> Create post</a><br><br> <?php } ?>
+			<?php if(isset($_COOKIE['token_ses_data'])) { ?> <a class="btn btn-primary" href="/communities/<?=$community['id']?>/post"><span class="badge">+</span> Create post</a><br><br> <?php } ?>
 			<div class="panel panel-default">
 				<div class="panel-heading">
 					All Posts

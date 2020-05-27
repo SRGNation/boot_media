@@ -3,7 +3,7 @@ require('connect.php');
 include('htm.php');
 
 if(isset($_GET['id'])) {
-	$community_id = mysqli_real_escape_string($db,$_GET['id']);
+	$community_id = $_GET['id'];
 }
 
 if(!isset($_COOKIE['token_ses_data'])) {
@@ -11,17 +11,20 @@ if(!isset($_COOKIE['token_ses_data'])) {
 }
 
 if(isset($_GET['id'])) {
-	$community = $db->query("SELECT community_name, community_icon, is_hidden FROM communities WHERE id = $community_id");
-	$row = mysqli_fetch_array($community);
+	$stmt = $db->prepare("SELECT community_name, community_icon, is_hidden, COUNT(*) FROM communities WHERE id = ?");
+	$stmt->bind_param('i', $community_id);
+	$stmt->execute();
+	$result = $stmt->get_result();
+	$row = $result->fetch_assoc();
 
-	if(mysqli_num_rows($community) == 0 || $row['is_hidden'] == 1) {
-		exit('This community doesn\'t exist.');
+	if($row['COUNT(*)'] == 0 || $row['is_hidden'] == 1) {
+		ShowError(404, 'This community doesn\'t exist.');
 	}
 }
 
 if($_SERVER['REQUEST_METHOD'] == "POST") {
 	if($_COOKIE['token_ses_data'] != $_POST['csrftoken']) {
-		$err = "Look, Arian Kordi. I know you have some sort of fetish of trying to hack into every single website I make, but please... Stop it... Please, do something better with your life. Ride a bike, go swimming, play some videogames, get a girlfriend, make another fucking Miiverse clone for all I care. Anything to fill up that empty void of yours. Just, please... Stop trying to hack into my social media websites. It's not funny, or cool. It's just annoying.";
+		$err = 'CSRF Check failed.';
 	}
 
 	if(empty($_POST['content'])) {
@@ -64,19 +67,39 @@ if($_SERVER['REQUEST_METHOD'] == "POST") {
 		$err = 'Your Screenshot is invalid.';
 	}
 
+	$stmt = $db->prepare('SELECT COUNT(*) FROM posts WHERE creator = ? AND date_time > NOW() - INTERVAL 15 SECOND');
+	$stmt->bind_param('i', $user['id']);
+	$stmt->execute();
+	if($stmt->error) {
+	    ShowError(500, 'There was an error while grabbing your recent posts.');
+	}
+	$result = $stmt->get_result();
+	$row = $result->fetch_assoc();
+	if($row['COUNT(*)'] > 0) {
+	    $err = 'You\'re making posts too fast! Please try again in a few seconds.';
+	}
+
 	if(!isset($err)) {
-		$db->query("INSERT INTO posts (post_body, post_community, post_type, post_image, uses_html, creator) VALUES ('".mysqli_real_escape_string($db,$_POST['content'])."', ".mysqli_real_escape_string($db,$_POST['communityid']).", ".mysqli_real_escape_string($db,$_POST['post_type']).", '".mysqli_real_escape_string($db,$_POST['screenshot'])."', ".mysqli_real_escape_string($db,$_POST['use_html']).", ".$user['id'].")");
+		$stmt = $db->prepare("INSERT INTO posts (post_body, post_community, post_type, post_image, uses_html, creator) VALUES (?, ?, ?, ?, ?, ?)");
+		$stmt->bind_param('siisii', $_POST['content'], $_POST['communityid'], $_POST['post_type'], $_POST['screenshot'], $_POST['use_html'], $user['id']);
+		$stmt->execute();
+		if($stmt->error) {
+	    	ShowError(500, 'There was an error while posting to the database.');
+		}
 
 		exit("<div id=\"main-body\">redirecting...<META HTTP-EQUIV=\"refresh\" content=\"0;URL=".($_POST['communityid'] == 0 ? '/users/'.$user['user_name'].'' : '/communities/'.$_POST['communityid'])."\">");
 	} else {
 		if($_POST['communityid'] != 0) {
-			$community_id = mysqli_real_escape_string($db,$_POST['communityid']);
+			$community_id = $_POST['communityid'];
 
-			$community = $db->query("SELECT * FROM communities WHERE id = $community_id");
-			$row = mysqli_fetch_array($community);
+			$stmt = $db->prepare("SELECT community_name, community_icon, is_hidden, COUNT(*) FROM communities WHERE id = ?");
+			$stmt->bind_param('i', $community_id);
+			$stmt->execute();
+			$result = $stmt->get_result();
+			$row = $result->fetch_assoc();
 
-			if(mysqli_num_rows($community) == 0 || $row['is_hidden'] == 1) {
-				exit('This community doesn\'t exist.');
+			if($row['COUNT(*)'] == 0 || $row['is_hidden'] == 1) {
+				ShowError(404, 'This community doesn\'t exist.');
 			}
 		}
 	}
