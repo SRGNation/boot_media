@@ -20,7 +20,7 @@ require("connect.php");
 include("htm.php");
 
 if(!isset($_COOKIE['token_ses_data'])) {
-	exit('You need to be logged in to delete something.');
+	ShowError(403, 'You need to be logged in to delete an account.');
 }
 
 if($type == 'post') {
@@ -29,7 +29,7 @@ if($type == 'post') {
 	//Gets the post itself
 	$get_post = $db->query("SELECT id, creator, post_community, is_deleted FROM posts WHERE id = ".mysqli_real_escape_string($db,$post_id)." AND is_deleted < 2");
 	if(mysqli_num_rows($get_post) == 0) {
-		exit('Post couldn\'t be found.');
+		ShowError(403, 'Post couldn\'t be found.');
 	}
 	$post = mysqli_fetch_array($get_post);
 	//Gets the creator of the post.
@@ -48,7 +48,7 @@ if($type == 'post') {
 	}
 	//Checks to see if your admin level is higher than the creator's admin level, if it's not, it will check to see if you're a community admin, and if you're not a community admin, it will check to see if you created the post, and if you did not create the post, then... Well you get the picture.
 	if($user['admin_level'] <= $creator['admin_level'] & $community_admin == 0 & $user['id'] != $creator['id']) {
-		exit('You don\'t have permission to delete this post.');
+		ShowError(403, 'You don\'t have permission to delete this post.');
 	}
 
 	if($_SERVER['REQUEST_METHOD'] == "POST") {
@@ -57,7 +57,7 @@ if($type == 'post') {
 		}
 
 		if($_COOKIE['token_ses_data'] != $_POST['csrftoken']) {
-			$err = "Look, Arian Kordi. I know you have some sort of fetish of trying to hack into every single website I make, but please... Stop it... Please, do something better with your life. Ride a bike, go swimming, play some videogames, get a girlfriend, make another fucking Miiverse clone for all I care. Anything to fill up that empty void of yours. Just, please... Stop trying to hack into my social media websites. It's not funny, or cool. It's just annoying.";
+			$err = 'CSRF check failed.';
 		}
 
 		if(!isset($err)) {

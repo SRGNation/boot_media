@@ -23,14 +23,13 @@ RewriteRule ^users/([A-Za-z0-9_-]+)/posts$ profile.php?id=$1&page=posts [QSA,L]
 RewriteRule ^users/([A-Za-z0-9_-]+)/comments$ profile.php?id=$1&page=comments [QSA,L]
 RewriteRule ^users/([A-Za-z0-9_-]+)/followers$ profile.php?id=$1&page=followers [QSA,L]
 RewriteRule ^users/([A-Za-z0-9_-]+)/following$ profile.php?id=$1&page=following [QSA,L]
+RewriteRule ^users/([A-Za-z0-9_-]+)/delete$ delete_account.php?id=$1 [QSA,L]
 RewriteRule ^rules$ rules.php
 RewriteRule ^check_update.json$ check_notifs.php
 RewriteRule ^register$ signup.php
 RewriteRule ^login$ signin.php
 RewriteRule ^api/users/([A-Za-z0-9_-]+)/info.json$ api/userInfo.php?token=$1
 ErrorDocument 404 /404.php
-
-php_value date.timezone "America/New_York"
 
 <Files 403.shtml>
 order allow,deny
