@@ -20,7 +20,7 @@ if($_SERVER["REQUEST_METHOD"] == 'POST') {
 		$err = 'Nickname is too long.';
 	}
 
-	if(isset($_POST['user_avatar'])) {
+	/*if(isset($_POST['user_avatar'])) {
 		if(strlen($_POST['user_avatar']) > 200) {
 			$err = 'Avatar URL is too long.';
 		}
@@ -28,7 +28,7 @@ if($_SERVER["REQUEST_METHOD"] == 'POST') {
 		if(!empty($_POST['user_avatar']) & !checkRemoteFile($_POST['user_avatar'])) {
 			$err = 'Your avatar is invalid.';
 		}
-	}
+	}*/
 
 	if(strlen($_POST['bio']) > 2000) {
 		$err = 'User Bio is too long.';
@@ -38,9 +38,22 @@ if($_SERVER["REQUEST_METHOD"] == 'POST') {
 		$err = 'Your hide liked posts setting is invalid.';
 	}
 
-	if(isset($_POST['user_avatar'])) {
+	/*if(isset($_POST['user_avatar'])) {
 		$avatar = $_POST['user_avatar'];
 	} else {
+		$avatar = null;
+	}*/
+
+	if(!empty($_FILES['avatar']['name']) & !$using_gravatar) {
+		$img = $_FILES['avatar'];
+	    $filename = $img['tmp_name'];
+	    $avatar = uploadImage($filename);
+	    if($avatar === null) {
+	        $err = 'An error occurred while uploading the image.';
+	    }
+	}
+	else
+	{
 		$avatar = null;
 	}
 
@@ -92,7 +105,7 @@ if($_SERVER["REQUEST_METHOD"] == 'POST') {
 				<li><a href="/settings/sessions">Manage Sessions</a></li>
 			</ul>
 			<br>
-			<form method="post">
+			<form method="post" enctype="multipart/form-data">
 				<?php 
 
 				if(isset($err)) {
@@ -110,8 +123,18 @@ if($_SERVER["REQUEST_METHOD"] == 'POST') {
 					<textarea class="form-control" type="text" rows="5" maxlength="2000" name="bio" placeholder="User Bio goes here."><?=$user['user_bio']?></textarea>
             	</div>
 				<div class="form-group">
-					<label for="user_avatar">Avatar Image URL</label>
-					<input class="form-control" type="text" name="user_avatar" placeholder="User Avatar URL goes here." maxlength="200" value="<?=$user['user_avatar']?>" <?=$using_gravatar ? 'disabled' : ''?>>
+        			<label for="avatar">Profile Avatar</label>
+        			<br>
+        			<?php
+        			if(!$using_gravatar) {?>
+        			<label>
+        			    <span>Image
+        			        <span>PNG, JPEG and GIF files are allowed.</span>
+        			    </span>
+        			    <input type="file" name="avatar" accept="image/*" />
+        			</label>
+        			<br>
+					<?php } ?>
 					<input type="checkbox" name="use_gravatar" <?=$using_gravatar ? 'checked' : ''?>>
 					<label for="use_gravatar">Use Gravatar</label>
             	</div>

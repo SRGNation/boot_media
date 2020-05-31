@@ -1,4 +1,5 @@
 <?php
+//TODO: Put all this information in a settings.php file.
 //Database settings
 const DB_SERVER = 'localhost';
 const DB_USERNAME = 'root';
@@ -8,6 +9,10 @@ const DB_DATABASE = 'boot_media';
 //General settings
 const CONTACT_EMAIL = null;
 const TIMEZONE = 'America/New_York';
+
+// Cloudinary settings.
+const CLOUDINARY_CLOUDNAME = 'reverb';
+const CLOUDINARY_UPLOADPRESET = 'reverb-mobile';
 
 //connect.php connects the user to a secret high tech database in which they can view everything Boot_Media and its users have to offer.
 error_reporting(E_ALL);

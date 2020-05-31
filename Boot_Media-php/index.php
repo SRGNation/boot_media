@@ -28,7 +28,7 @@ if(!isset($_COOKIE['token_ses_data'])) {
 	}
 	$presult = $stmt->get_result();*/
 } else {
-	$postdata = $db->query("SELECT id FROM posts WHERE is_deleted = 0".($offset > 0 ? " AND (creator IN (SELECT id FROM users WHERE id = ".$user['id'].") OR post_community IN (SELECT community FROM community_joins WHERE creator = ".$user['id'].")) AND date_time < '".$db->real_escape_string($date_time)."'" : '')." ORDER BY date_time DESC LIMIT 30 offset ".$db->real_escape_string($offset));
+	$postdata = $db->query("SELECT id FROM posts WHERE is_deleted = 0 AND (creator IN (SELECT id FROM users WHERE id = ".$user['id'].") OR post_community IN (SELECT community FROM community_joins WHERE creator = ".$user['id']."))".($offset > 0 ? " AND date_time < '".$db->real_escape_string($date_time)."'" : '')." ORDER BY date_time DESC LIMIT 30 offset ".$db->real_escape_string($offset));
 	/*$stmt = $db->prepare("SELECT id FROM posts WHERE is_deleted = 0 AND (creator IN (SELECT id FROM users WHERE id = ?) OR post_community IN (SELECT community FROM community_joins WHERE creator = ?)) ORDER BY date_time DESC LIMIT 30");
 	$stmt->bind_param('ii', $user['id'], $user['id']);
 	$stmt->execute();

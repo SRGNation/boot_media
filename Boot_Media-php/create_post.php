@@ -35,10 +35,6 @@ if($_SERVER['REQUEST_METHOD'] == "POST") {
 		$err = 'Post content is too long.';
 	}
 
-	if(strlen($_POST['screenshot']) > 200) {
-		$err = 'Screenshot image is too long.';
-	}
-
 	if (strlen($_POST['content']) > 0 && strlen(trim($_POST['content'])) == 0) {
 		$err = 'Post can\'t only contain spaces.';
 	}
@@ -63,8 +59,17 @@ if($_SERVER['REQUEST_METHOD'] == "POST") {
 		$err = 'Invalid post type.';
 	}
 
-	if(!empty($_POST['screenshot']) && !checkRemoteFile($_POST['screenshot'])) {
-		$err = 'Your Screenshot is invalid.';
+	if(!empty($_FILES['image']['name'])) {
+		$img = $_FILES['image'];
+	    $filename = $img['tmp_name'];
+	    $image = uploadImage($filename);
+	    if($image === null) {
+	        $err = 'An error occurred while uploading the image.';
+	    }
+	}
+	else
+	{
+		$image = null;
 	}
 
 	$stmt = $db->prepare('SELECT COUNT(*) FROM posts WHERE creator = ? AND date_time > NOW() - INTERVAL 15 SECOND');
@@ -81,7 +86,7 @@ if($_SERVER['REQUEST_METHOD'] == "POST") {
 
 	if(!isset($err)) {
 		$stmt = $db->prepare("INSERT INTO posts (post_body, post_community, post_type, post_image, uses_html, creator) VALUES (?, ?, ?, ?, ?, ?)");
-		$stmt->bind_param('siisii', $_POST['content'], $_POST['communityid'], $_POST['post_type'], $_POST['screenshot'], $_POST['use_html'], $user['id']);
+		$stmt->bind_param('siisii', $_POST['content'], $_POST['communityid'], $_POST['post_type'], $image, $_POST['use_html'], $user['id']);
 		$stmt->execute();
 		if($stmt->error) {
 	    	ShowError(500, 'There was an error while posting to the database.');
@@ -128,7 +133,7 @@ if($_SERVER['REQUEST_METHOD'] == "POST") {
         <div class="panel panel-default">
         <div class="panel-heading">Create Post</div>
         <div class="panel-body">
-		<form action="/create_post.php" method="post">
+		<form action="/create_post.php" method="post" enctype="multipart/form-data">
             <input type="hidden" name="csrftoken" value="<?php echo $_COOKIE['token_ses_data']; ?>">
             <input type="hidden" name="communityid" value="<?php if(isset($community_id)) { echo $community_id; } else { echo '0'; } ?>">
             <div class="form-group">
@@ -166,11 +171,15 @@ if($_SERVER['REQUEST_METHOD'] == "POST") {
                 </option>
         	    </select>
             </div>
-            <div class="form-group">
-            <label for="screenshot">Screenshot</label>
-        	<input class="form-control" type="text" name="screenshot" placeholder="Screenshot goes here.">
-            </div>
-            <input class="btn btn-primary" type="submit" value="Create">
+        	<label>
+        	    <span>Image
+        	        <span>PNG, JPEG and GIF files are allowed.</span>
+        	    </span>
+        	    <input type="file" name="image" accept="image/*" />
+        	</label>
+        	<br>
+        	<br>
+        	<input class="btn btn-primary" type="submit" value="Create">
 		    </form>
             </div>
         </div>
