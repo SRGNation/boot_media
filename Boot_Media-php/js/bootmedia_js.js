@@ -6,23 +6,29 @@ $(document).ready(function(){
 		var likeType = $(this).attr('liketype');
 		var remove = $(this).attr('remove');
 
+		if(likeType == 0) {
+			var likeClass = 'post-like';
+		} else {
+			var likeClass = 'comment-like';
+		}
+
 		$("#"+post).attr('disabled', '');
 
 		$.post('/like.php', {post:post, likeType:likeType, remove:remove}, function(data){
 
 			if(data == 'success') {
 				if(remove == 0) {
-				$('#'+post).find('.like-button-text').text('Unlike');
-				$('#'+post).closest('li').find('.like-count').text(Number($('#'+post).closest('li').find('.like-count').text()) + 1);
-				$("#"+post).removeAttr('disabled');
-				$("#"+post).removeAttr('remove');
-				$("#"+post).attr('remove','1');
+				$('#'+post+'.'+likeClass).find('.like-button-text').text('Unlike');
+				$('#'+post+'.'+likeClass).find('.like-count').text(Number($('#'+post+'.'+likeClass).find('.like-count').text()) + 1);
+				$("#"+post+'.'+likeClass).removeAttr('disabled');
+				$("#"+post+'.'+likeClass).removeAttr('remove');
+				$("#"+post+'.'+likeClass).attr('remove','1');
 				} else {
-				$('#'+post).find('.like-button-text').text('Like');
-				$('#'+post).closest('li').find('.like-count').text(Number($('#'+post).closest('li').find('.like-count').text()) - 1);
-				$("#"+post).removeAttr('disabled');
-				$("#"+post).removeAttr('remove');
-				$("#"+post).attr('remove','0');
+				$('#'+post+'.'+likeClass).find('.like-button-text').text('Like');
+				$('#'+post+'.'+likeClass).find('.like-count').text(Number($('#'+post+'.'+likeClass).find('.like-count').text()) - 1);
+				$("#"+post+'.'+likeClass).removeAttr('disabled');
+				$("#"+post+'.'+likeClass).removeAttr('remove');
+				$("#"+post+'.'+likeClass).attr('remove','0');
 				}
 			} else {
 				alert('An error occured: '+data);

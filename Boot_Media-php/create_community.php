@@ -8,7 +8,7 @@ if(!isset($_COOKIE['token_ses_data'])) {
 
 if($_SERVER['REQUEST_METHOD'] == "POST") {
 	if($_COOKIE['token_ses_data'] != $_POST['csrftoken']) {
-		$err = "Look, Arian Kordi. I know you have some sort of fetish of trying to hack into every single website I make, but please... Stop it... Please, do something better with your life. Ride a bike, go swimming, play some videogames, get a girlfriend, make another fucking Miiverse clone for all I care. Anything to fill up that empty void of yours. Just, please... Stop trying to hack into my social media websites. It's not funny, or cool. It's just annoying.";
+		$err = 'CSRF Check failed.';
 	}
 
 	if(empty($_POST['community_name'])) {
@@ -17,14 +17,6 @@ if($_SERVER['REQUEST_METHOD'] == "POST") {
 
 	if(strlen($_POST['community_name']) > 64) {
 		$err = 'Community name is too long.';
-	}
-
-	if(strlen($_POST['community_icon']) > 200) {
-		$err = 'Community icon is too long.';
-	}
-
-	if(strlen($_POST['community_banner']) > 200) {
-		$err = 'Community banner is too long.';
 	}
 
 	if(strlen($_POST['community_desc']) > 2000) {
@@ -59,9 +51,53 @@ if($_SERVER['REQUEST_METHOD'] == "POST") {
 		$err = 'Your post perms setting is invalid.';
 	}
 
+    if(!empty($_FILES['icon']['name'])) {
+        $img = $_FILES['icon'];
+        $filename = $img['tmp_name'];
+        $icon = uploadImage($filename);
+        if($icon === null) {
+            $err = 'An error occurred while uploading the image.';
+        }
+    }
+    else
+    {
+        $icon = null;
+    }
+
+    if(!empty($_FILES['banner']['name'])) {
+        $img = $_FILES['banner'];
+        $filename = $img['tmp_name'];
+        $banner = uploadImage($filename);
+        if($banner === null) {
+            $err = 'An error occurred while uploading the image.';
+        }
+    }
+    else
+    {
+        $banner = null;
+    }
+
+    $stmt = $db->prepare('SELECT COUNT(*) FROM communities WHERE community_owner = ? AND date_created > NOW() - INTERVAL 5 MINUTE');
+    $stmt->bind_param('i', $user['id']);
+    $stmt->execute();
+    if($stmt->error) {
+        ShowError(500, 'There was an error while grabbing your recent communities.');
+    }
+    $result = $stmt->get_result();
+    $row = $result->fetch_assoc();
+    if($row['COUNT(*)'] > 0) {
+        $err = 'You\'re making communities too fast! Please try again in a few minutes.';
+    }
+
 	if(!isset($err)) {
 		//Inserts community into the database.
-		$db->query("INSERT INTO communities (community_name, community_icon, community_banner, community_desc, is_nsfw, join_perms, view_perms, post_perms, community_owner) VALUES ('".mysqli_real_escape_string($db,$_POST['community_name'])."', '".mysqli_real_escape_string($db,$_POST['community_icon'])."', '".mysqli_real_escape_string($db,$_POST['community_banner'])."', '".mysqli_real_escape_string($db,$_POST['community_desc'])."', ".$_POST['is_nsfw'].", ".$_POST['join_perms'].", ".$_POST['view_perms'].", ".$_POST['post_perms'].", ".$user['id'].")");
+        $stmt = $db->prepare("INSERT INTO communities (community_name, community_icon, community_banner, community_desc, is_nsfw, join_perms, view_perms, post_perms, community_owner) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        $stmt->bind_param('ssssiiiii', $_POST['community_name'], $icon, $banner, $_POST['community_desc'], $_POST['is_nsfw'], $_POST['join_perms'], $_POST['view_perms'], $_POST['post_perms'], $user['id']);
+        $stmt->execute();
+        if($stmt->error) {
+            ShowError(500, 'There was an error while creating your community.');
+        }
+
 		$get_community = $db->query("SELECT id, community_owner FROM communities WHERE community_owner = ".$user['id']." ORDER BY date_created DESC");
 		$community = mysqli_fetch_array($get_community);
 		//Inserts the community into your joined communities list.
@@ -89,7 +125,7 @@ if($_SERVER['REQUEST_METHOD'] == "POST") {
         <div class="panel panel-default">
         <div class="panel-heading">Create Community</div>
         <div class="panel-body">
-		<form method="post">
+		<form method="post" enctype="multipart/form-data">
             <input type="hidden" name="csrftoken" value="<?php echo $_COOKIE['token_ses_data']; ?>">
             <div class="form-group">
             <label for="community_name">The name of your community</label>
@@ -100,12 +136,24 @@ if($_SERVER['REQUEST_METHOD'] == "POST") {
 			<textarea class="form-control" type="text" rows="4" maxlength="2000" name="community_desc" placeholder="Community description goes here."></textarea>
             </div>
             <div class="form-group">
-            <label for="community_icon">The icon of your community</label>
-        	<input class="form-control" type="text" name="community_icon" maxlength="200" placeholder="Image URL goes here.">
+                <label for="icon">Community Icon</label>
+                <br>
+                <label>
+                    <span>Image
+                        <span>PNG, JPEG and GIF files are allowed.</span>
+                    </span>
+                    <input type="file" name="icon" accept="image/*" />
+                </label>
             </div>
             <div class="form-group">
-            <label for="community_icon">The banner of your community</label>
-        	<input class="form-control" type="text" name="community_banner" maxlength="200" placeholder="Image URL goes here.">
+                <label for="banner">Community Banner</label>
+                <br>
+                <label>
+                    <span>Image
+                        <span>PNG, JPEG and GIF files are allowed.</span>
+                    </span>
+                    <input type="file" name="banner" accept="image/*" />
+                </label>
             </div>
             <div class="form-group">
             <label for="is_nsfw">Is your community a NSFW (Not Safe For Work) community?</label>

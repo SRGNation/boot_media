@@ -32,17 +32,24 @@ function PrintNavBar($page) {
   			echo '</nav>';
 }
 
-function PrintHeader($name) {
+function PrintHeader($name = null, $og_desc = null) {
   echo '<head>
-  <title>'.$name.' - Boot_Media</title>
+  <title>'.(!empty($name) ? htmlspecialchars($name) . ' - ' : '').'Boot_Media</title>
   <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta charset="utf-8">
     <link rel="stylesheet" href="/css/bootstrap.min.css">
     <link rel="shortcut icon" href="/img/icon.png">
-    <script src="/js/jquery-3.2.1.min.js"></script>
+    <script src="/js/jquery-3.5.1.min.js"></script>
     <script src="/js/bootstrap.min.js"></script>
     <script type="text/javascript" src="/js/bootmedia_js.js"></script>
+    <meta property="og:title" content="'.(!empty($name) ? htmlspecialchars($name) . ' - ' : '').'Boot_Media">
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="http://'.$_SERVER['SERVER_NAME'].'">
+    <meta property="og:description" content="'.(empty($og_desc) ? 'Boot_Media is a service that lets you communicate with other users from around the world.' : htmlspecialchars($og_desc)).'">
+    <meta property="og:site_name" content="Boot_Media">
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:domain" content="'.$_SERVER['SERVER_NAME'].'">
   </head>';
 //<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
 }
@@ -236,7 +243,7 @@ function printLikeButton($id, $liketype) {
   $result = $stmt->get_result();
   $post = $result->fetch_assoc();
 
-  echo '<button id="'.$id.'" liketype="'.$liketype.'" remove="'.$liked.'" type="button" '.($post['creator'] === $user['id'] || empty($_COOKIE['token_ses_data']) ? 'disabled' : '').' class="btn btn-primary like-button"><span class="like-button-text">'.($liked == 0 ? 'Like' : 'Unlike').'</span> <span class="badge"><div class="like-count">'.$count['COUNT(*)'].'</div></span></button> ';
+  echo '<button id="'.$id.'" liketype="'.$liketype.'" remove="'.$liked.'" type="button" '.($post['creator'] === $user['id'] || empty($_COOKIE['token_ses_data']) ? 'disabled' : '').' class="btn btn-primary like-button '.($liketype === 0 ? 'post-like' : 'comment-like').'"><span class="like-button-text">'.($liked == 0 ? 'Like' : 'Unlike').'</span> <span class="badge"><div class="like-count">'.$count['COUNT(*)'].'</div></span></button> ';
 }
 
 function humanTiming($time) {

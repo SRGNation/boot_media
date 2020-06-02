@@ -54,9 +54,15 @@ if(isset($_GET['offset']) && isset($_GET['date_time'])) {
 //Gets the amount of people who joined the community
 $like_com_count = mysqli_num_rows($db->query("SELECT id FROM community_joins WHERE community = ".$community['id']));
 
+if(strlen($community['community_desc']) > 400) {
+	$content_st = mb_substr($community['community_desc'],0,397).'...';
+} else {
+	$content_st = $community['community_desc'];
+}
+
 ?>
 <html>
-	<?php PrintHeader($community['community_name']); ?>
+	<?php PrintHeader($community['community_name'], $content_st); ?>
 	<body>
 		<?php PrintNavBar('home'); ?>
 		<div class="container">

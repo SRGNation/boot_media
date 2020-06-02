@@ -11,12 +11,13 @@ if(!isset($_GET['view_html'])) {
 	$view_html = true;
 }
 
-$post_id = mysqli_real_escape_string($db,$_GET['id']);
-$get_pos_data = $db->query("SELECT * FROM posts WHERE id = $post_id AND is_deleted < 2");
-$post_exists = mysqli_num_rows($get_pos_data);
-$post = mysqli_fetch_array($get_pos_data);
+$stmt = $db->prepare("SELECT id, post_body, post_community, creator, date_time, is_deleted, is_pinned, post_image, uses_html, COUNT(*) FROM posts WHERE id = ? AND is_deleted < 2");
+$stmt->bind_param('i', $_GET['id']);
+$stmt->execute();
+$result = $stmt->get_result();
+$post = $result->fetch_assoc();
 
-if($post_exists == 0) {
+if($post['COUNT(*)'] == 0) {
 	exit('<html>'.PrintHeader('Post doesn\'t exist').'<body>'.PrintNavBar('community').'
 		<div class="container">
 			<div class="page-header">
@@ -34,8 +35,14 @@ $owner_data = mysqli_fetch_array($pos_owner_data);
 $community = $db->query("SELECT community_name, community_icon, community_owner FROM communities WHERE id = ".$post['post_community']." AND is_hidden = 0");
 $com_row = mysqli_fetch_array($community);
 
-$get_comments = $db->query("SELECT * FROM comments WHERE comment_post = ".$post_id);
+$get_comments = $db->query("SELECT * FROM comments WHERE comment_post = ".$post['id']);
 $ccount = mysqli_num_rows($get_comments);
+
+if(strlen($post['post_body']) > 400) {
+	$content_st = mb_substr($post['post_body'],0,397).'...';
+} else {
+	$content_st = $post['post_body'];
+}
 
 //Checks to see if you're a community admin
 if(!empty($_COOKIE['token_ses_data']) && $com_row['community_owner'] == $user['id']) {
@@ -46,7 +53,7 @@ if(!empty($_COOKIE['token_ses_data']) && $com_row['community_owner'] == $user['i
 
 ?>
 <html>
-	<?php PrintHeader($owner_data['nick_name'].'\'s post'); ?>
+	<?php PrintHeader($owner_data['nick_name'].'\'s post', htmlspecialchars($content_st)); ?>
 	<head>
 		<?php PrintNavBar('post'); ?>
 		<div class="container">
@@ -69,11 +76,11 @@ if(!empty($_COOKIE['token_ses_data']) && $com_row['community_owner'] == $user['i
 		}
 			printLikeButton($post['id'], 0);
 		if($user['id'] == $owner_data['id'] || $user['admin_level'] > $owner_data['admin_level'] || $community_admin == 1) {
-			echo '<a class="btn btn-danger" href="/posts/'.$post_id.'/delete">Delete</a>';
+			echo '<a class="btn btn-danger" href="/posts/'.$post['id'].'/delete">Delete</a>';
 		}
 		?>
 			<br><br>
-			<?php if(isset($_COOKIE['token_ses_data'])) { ?> <a class="btn btn-primary" href="/posts/<?php echo $post_id; ?>/comment"><span class="badge">+</span> Create comment</a><br><br> <?php } ?>
+			<?php if(isset($_COOKIE['token_ses_data'])) { ?> <a class="btn btn-primary" href="/posts/<?php echo $post['id']; ?>/comment"><span class="badge">+</span> Create comment</a><br><br> <?php } ?>
 			<div class="panel panel-default">
 				<div class="panel-heading">
 					Comments <span class="badge"><?php echo $ccount; ?></span>
